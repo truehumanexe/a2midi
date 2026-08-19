@@ -1,4 +1,9 @@
+// Audio 2 MIDI Converter
+// build with: cargo nice-plug bundle a2midi
+
 #![allow(unused)] //removed this before merge with main
+
+use std::sync::{Arc, atomic::AtomicUsize};
 
 use nice_plug::{editor::dpi::LogicalSize, prelude::*};
 
@@ -11,51 +16,44 @@ use nice_plug_iced::{
     },
 };
 
-use std::sync::Arc;
+
 use rtrb::{RingBuffer, PushError, PopError, Producer, Consumer};
 use triple_buffer::{TripleBuffer, Input, Output};
 
 mod model; 
-use model::params::*;
+use model::{params::*, probe::*, editor::*};
 
 
-const MIN_WINDOW_SIZE: LogicalSize<f32> = LogicalSize::new(640.0, 360.0);
-const RESIZE_HINT: ResizeHint = ResizeHint::resizable().with_min_logical_size(MIN_WINDOW_SIZE);
-const INITIAL_SCALE_FACTOR: f32 = 1.0;
 
 
-//Audio 2 MIDI
-//build with: cargo nice-plug bundle a2midi
-pub struct A2M {
-    params: Arc<A2MParams>,
+
+pub struct App {
+    params: Arc<AppParams>,
 
     editor_state: Arc<IcedEditorState>,
 
-    //Single Arc Struct with all of the data that needs to be passed to the gui
+    notifer: PollSubNotifier,
 
-    //notifier for update frames
-
-    audio_block: Option<Producer<f32>>,
-    oscilloscope_tx: Option<Input<Box<[f32]>>>,
-    spectrum_tx: Option<Input<Box<[f32]>>>,
-
+    audio_write_block: Option<Producer<f32>>,
+    audio_analysis_block: Option<ProbeData>,
+    
     
 }
 
 
-impl Default for A2M{
+impl Default for App{
     fn default() -> Self {
         Self {
-            params: Arc::new(A2MParams::default()),
+            params: Arc::new(AppParams::default()),
             editor_state: IcedEditorState::from_size(MIN_WINDOW_SIZE, INITIAL_SCALE_FACTOR),
-            audio_block: None,
-            oscilloscope_tx: None,
-            spectrum_tx: None,
+            notifer: PollSubNotifier::new(),
+            audio_write_block: None,
+            audio_analysis_block: None,
         }
     }
 }
 
-impl Plugin for A2M{
+impl Plugin for App{
     const NAME: &'static str = "Audio2MIDI";
     const VENDOR: &'static str = "Melodious Plugins";
     // You can use `env!("CARGO_PKG_HOMEPAGE")` to reference the homepage field from the
@@ -93,6 +91,18 @@ impl Plugin for A2M{
         _context: &mut impl ActivateContext<Self>,
     ) -> bool  {
 
+        let probe_size = self.params.probe_size.value() as usize;
+        let v = vec![0.0f32;probe_size];
+        let (mut buf_producer, mut buf_consumer) = triple_buffer::triple_buffer(&v);
+
+        self.audio_analysis_block = Some(
+            ProbeData::new(
+                probe_size,
+                buf_producer,
+                buf_consumer,
+                vec![0.0f32;probe_size],
+            )
+        );
 
 
         true
@@ -125,7 +135,7 @@ impl Plugin for A2M{
 
 }
 
-impl ClapPlugin for A2M {
+impl ClapPlugin for App {
     const CLAP_ID: &'static str = "com.melodious-plugins.a2midi";
     const CLAP_DESCRIPTION: Option<&'static str> = Some("An audio to MIDI conversion plugin");
     const CLAP_MANUAL_URL: Option<&'static str> = None;
@@ -137,4 +147,4 @@ impl ClapPlugin for A2M {
     ];
 }
 
-nice_export_clap!(A2M);
+nice_export_clap!(App);

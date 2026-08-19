@@ -1,4 +1,2 @@
-pub mod TransportControls;
-pub mod PianoRollMenu;
-pub mod TimeEdits;
-pub mod Message;
+pub mod messages;
+pub mod gui;

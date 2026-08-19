@@ -11,29 +11,32 @@ use nice_plug::prelude::*;
 
 
 #[derive(Params)]
-pub struct A2MParams {
+pub struct AppParams {
 
     #[persist = "tempo"]
-    tempo: util::AtomicF64,
+    pub tempo: util::AtomicF64,
 
     #[persist = "time_sig_numerator"]
-    time_sig_numerator: AtomicI32,
+    pub time_sig_numerator: AtomicI32,
 
     #[persist = "time_sig_denominator"]
-    time_sig_denominator: AtomicI32,
+    pub time_sig_denominator: AtomicI32,
 
     #[persist = "armed"]
-    armed: AtomicBool,
+    pub armed: AtomicBool,
     
     #[persist = "playing"]
-    playing: AtomicBool,
+    pub playing: AtomicBool,
 
     #[persist = "metronome"]
-    metronome_on: AtomicBool
+    pub metronome_on: AtomicBool,
+
+    #[id = "probe_size"]
+    pub probe_size: IntParam,
 
 }
 
-impl Default for A2MParams{
+impl Default for AppParams{
     fn default() -> Self {
         Self {
             tempo: util::AtomicF64::new(120.0),
@@ -42,6 +45,7 @@ impl Default for A2MParams{
             armed: AtomicBool::new(false),
             playing: AtomicBool::new(false),
             metronome_on: AtomicBool::new(false),
+            probe_size: IntParam::new( "Probe Size",  10, IntRange::Linear{min:9, max:10}),
             
         }
     }
