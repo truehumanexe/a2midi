@@ -3,16 +3,13 @@
 
 #![allow(unused)] //removed this before merge with main
 
-use std::sync::{Arc, atomic::AtomicUsize};
+use std::sync::{Arc, atomic::AtomicUsize, atomic::Ordering};
 
 use nice_plug::{editor::dpi::LogicalSize, prelude::*};
 
 use nice_plug_iced::{
-    application, create_iced_editor,
-    IcedEditor, IcedEditorState, IcedNiceContext, IcedNiceSettings, PersistentState,
-    iced::{
-        self, Center, PollSubNotifier, Subscription, Theme,
-        widget::{Column, ProgressBar, button, column, pick_list, row, slider, text},
+    IcedEditor, IcedEditorState, IcedNiceContext, IcedNiceSettings, PersistentState, application, create_iced_editor, iced::{
+        self, Center, PollSubNotifier, Subscription, Theme, animation::Float, widget::{Column, ProgressBar, button, column, pick_list, row, slider, text},
     },
 };
 
@@ -30,12 +27,12 @@ use model::{params::*, probe::*, editor::*};
 pub struct App {
     params: Arc<AppParams>,
 
-    editor_state: Arc<IcedEditorState>,
+    // editor_state: Arc<IcedEditorState>,
 
     notifer: PollSubNotifier,
 
     audio_write_block: Option<Producer<f32>>,
-    audio_analysis_block: Option<ProbeData>,
+    probe_data: Option<ProbeData>,
     
     
 }
@@ -45,11 +42,17 @@ impl Default for App{
     fn default() -> Self {
         Self {
             params: Arc::new(AppParams::default()),
-            editor_state: IcedEditorState::from_size(MIN_WINDOW_SIZE, INITIAL_SCALE_FACTOR),
+            // editor_state: IcedEditorState::from_size(MIN_WINDOW_SIZE, INITIAL_SCALE_FACTOR),
             notifer: PollSubNotifier::new(),
             audio_write_block: None,
-            audio_analysis_block: None,
+            probe_data: None,
         }
+    }
+}
+
+impl App{
+    fn probe_samples(&self) -> usize {
+        2_i32.pow(self.params.probe_exponent.value() as u32) as usize
     }
 }
 
@@ -71,10 +74,11 @@ impl Plugin for App{
         },
     ];
 
-    const MIDI_OUTPUT: MidiConfig = MidiConfig::Basic;
+    // const MIDI_OUTPUT: MidiConfig = MidiConfig::Basic;
     const SAMPLE_ACCURATE_AUTOMATION: bool = true;
     
-    type Editor = IcedEditor;
+    // type Editor = IcedEditor;
+    type Editor = ();
     type SysExMessage = ();
     type BackgroundTask = ();
 
@@ -91,19 +95,13 @@ impl Plugin for App{
         _context: &mut impl ActivateContext<Self>,
     ) -> bool  {
 
-        let probe_size = self.params.probe_size.value() as usize;
+        //Setup for scope analyzer
+
+        let probe_size = self.probe_samples();
         let v = vec![0.0f32;probe_size];
         let (mut buf_producer, mut buf_consumer) = triple_buffer::triple_buffer(&v);
 
-        self.audio_analysis_block = Some(
-            ProbeData::new(
-                probe_size,
-                buf_producer,
-                buf_consumer,
-                vec![0.0f32;probe_size],
-            )
-        );
-
+        self.probe_data = Some( ProbeData::new(probe_size));
 
         true
     }
@@ -112,6 +110,8 @@ impl Plugin for App{
     // plugin is deactivated. Most plugins won't need to do anything here.
     // fn deactivate(&mut self) {}
 
+
+    
 
 
 
@@ -124,7 +124,10 @@ impl Plugin for App{
         for channel_samples in buffer.iter_samples() {
 
             for sample in channel_samples {
-                //do stuff
+                match &mut self.probe_data{
+                    Some(p) => p.push(sample.float_value()),
+                    _ => return ProcessStatus::Error("probe_data not instanced"),
+                }
             }
         }
 
@@ -141,7 +144,7 @@ impl ClapPlugin for App {
     const CLAP_MANUAL_URL: Option<&'static str> = None;
     const CLAP_SUPPORT_URL: Option<&'static str> = None;
     const CLAP_FEATURES: &'static [ClapFeature] = &[
-        ClapFeature::Stereo,
+        // ClapFeature::Stereo,
         ClapFeature::Mono,
         ClapFeature::Utility,
     ];

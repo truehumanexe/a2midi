@@ -15,24 +15,18 @@ pub struct ProbeData{
 
 impl Default for ProbeData{
     fn default() -> Self {
-        let (tx, rx) = triple_buffer(vec![0.0f32].as_ref());
-        Self{ 
-            tx: tx,
-            rx: Some(rx),
-            staging: vec![0.0f32],
-            counter: 0,
-        }
+        Self::new(1024)
     }
 }
 
 impl ProbeData{
 
-    pub fn new(size: usize, tx: Input<Vec<f32>>, rx: Output<Vec<f32>>, staging:Vec<f32>) -> Self {
+    pub fn new(size: usize) -> Self {
         let (tx, rx) = triple_buffer(vec![0.0f32;size].as_ref());
         Self{
             tx, 
             rx: Some(rx),
-            staging,
+            staging: vec![0.0f32;size],
             counter: 0
         }
     }
@@ -43,7 +37,7 @@ impl ProbeData{
         
         if self.counter >= self.staging.len(){
             let input = self.tx.input_buffer_mut();
-            input.clear();
+            // input.clear(); 
             input.copy_from_slice(self.staging.as_slice());
             self.tx.publish();
             self.counter = 0;

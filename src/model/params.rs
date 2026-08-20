@@ -1,15 +1,6 @@
 use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
 use nice_plug::prelude::*;
 
-// #[derive(Debug, Enum, PartialEq, Copy, Clone)]
-// pub enum ChannelConfig{
-//     Mono,
-//     Stereo,
-// }
-
-
-
-
 #[derive(Params)]
 pub struct AppParams {
 
@@ -31,8 +22,11 @@ pub struct AppParams {
     #[persist = "metronome"]
     pub metronome_on: AtomicBool,
 
-    #[id = "probe_size"]
-    pub probe_size: IntParam,
+    #[persist = "daw_lock"]
+    pub daw_lock: AtomicBool,
+
+    #[id = "probe_exp"]
+    pub probe_exponent: IntParam,
 
 }
 
@@ -45,7 +39,8 @@ impl Default for AppParams{
             armed: AtomicBool::new(false),
             playing: AtomicBool::new(false),
             metronome_on: AtomicBool::new(false),
-            probe_size: IntParam::new( "Probe Size",  10, IntRange::Linear{min:9, max:10}),
+            daw_lock: AtomicBool::new(false),
+            probe_exponent: IntParam::new( "Probe Exponent",  10, IntRange::Linear{min:9, max:11}),
             
         }
     }
