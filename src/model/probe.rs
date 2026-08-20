@@ -37,7 +37,6 @@ impl ProbeData{
         
         if self.counter >= self.staging.len(){
             let input = self.tx.input_buffer_mut();
-            // input.clear(); 
             input.copy_from_slice(self.staging.as_slice());
             self.tx.publish();
             self.counter = 0;

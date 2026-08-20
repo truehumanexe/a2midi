@@ -4,6 +4,8 @@
 #![allow(unused)] //removed this before merge with main
 
 use std::sync::{Arc, atomic::AtomicUsize, atomic::Ordering};
+use tracing::level_filters::LevelFilter;
+
 
 use nice_plug::{editor::dpi::LogicalSize, prelude::*};
 
@@ -110,10 +112,23 @@ impl Plugin for App{
     // plugin is deactivated. Most plugins won't need to do anything here.
     // fn deactivate(&mut self) {}
 
-
+    fn setup_logger() -> Option<bool> {
+        Some(
+            tracing::subscriber::set_global_default(
+                tracing_subscriber::FmtSubscriber::builder()
+                    .with_max_level(if cfg!(debug_assertions) {
+                        LevelFilter::DEBUG
+                    } else {
+                        LevelFilter::INFO
+                    })
+                    .with_writer(nice_plug::log::writer_from_env())
+                    .with_ansi(false)
+                    .finish(),
+            )
+            .is_ok(),
+        )
+    }
     
-
-
 
     fn process(
         &mut self,
