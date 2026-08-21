@@ -1,3 +1,4 @@
+#[derive(Debug, Clone, Copy)]
 pub enum TransportControls{
     Rewind,
     Play,
@@ -5,19 +6,20 @@ pub enum TransportControls{
     Forward,
 }
 
+#[derive(Debug, Clone, Copy)]
 pub enum PianoRollMenu{
     Filters,
     Algos,
     Compile,
 }
 
+#[derive(Debug, Clone, Copy)]
 pub enum TimeEdits{
+    TimeSignature,
     Tempo,
-    TimeSignatureNumerator,
-    TimeSignatureDenominator,
 }
 
-
+#[derive(Debug, Clone, Copy)]
 pub enum Message{
     Transport(TransportControls),
     PianoRoll(PianoRollMenu),
@@ -25,4 +27,6 @@ pub enum Message{
     DawLock,
     Metronome,
     HamburgerMenu,
+    Poll,
+    WindowResized,
 }

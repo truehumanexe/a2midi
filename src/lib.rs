@@ -22,6 +22,9 @@ use triple_buffer::{TripleBuffer, Input, Output};
 mod model; 
 use model::{params::*, probe::*, editor::*};
 
+mod view;
+use view::gui::*;
+
 
 
 
@@ -29,12 +32,13 @@ use model::{params::*, probe::*, editor::*};
 pub struct App {
     params: Arc<AppParams>,
 
-    // editor_state: Arc<IcedEditorState>,
+    editor_state: Arc<IcedEditorState>,
 
-    notifer: PollSubNotifier,
+    notifier: PollSubNotifier,
 
     audio_write_block: Option<Producer<f32>>,
     probe_data: Option<ProbeData>,
+
     
     
 }
@@ -44,8 +48,8 @@ impl Default for App{
     fn default() -> Self {
         Self {
             params: Arc::new(AppParams::default()),
-            // editor_state: IcedEditorState::from_size(MIN_WINDOW_SIZE, INITIAL_SCALE_FACTOR),
-            notifer: PollSubNotifier::new(),
+            editor_state: IcedEditorState::from_size(MIN_WINDOW_SIZE, INITIAL_SCALE_FACTOR),
+            notifier: PollSubNotifier::new(),
             audio_write_block: None,
             probe_data: None,
         }
@@ -79,13 +83,39 @@ impl Plugin for App{
     // const MIDI_OUTPUT: MidiConfig = MidiConfig::Basic;
     const SAMPLE_ACCURATE_AUTOMATION: bool = true;
     
-    // type Editor = IcedEditor;
-    type Editor = ();
+    type Editor = IcedEditor;
+    // type Editor = ();
     type SysExMessage = ();
     type BackgroundTask = ();
 
     fn params(&self) -> Arc<dyn Params> {
         self.params.clone()
+    }
+
+    fn editor(&mut self, _async_executor: AsyncExecutor<Self>) -> Option<Self::Editor> {
+
+        create_iced_editor(
+            self.editor_state.clone(),
+            AppEditor::new(
+                self.params.clone(),
+                self.probe_data.as_ref().unwrap().take_rx().unwrap(), //if this panics the probe_data setup needs to be entirely rewritten.
+            ),
+            self.notifier.clone(),
+            IcedNiceSettings::new().with_resize_hint(RESIZE_HINT),
+            |editor_state, nice_ctx| {
+                Ok(application(
+                    editor_state,
+                    nice_ctx,
+                    AppGui::new,
+                    AppGui::update,
+                    AppGui::view,
+                )
+                .theme(AppGui::theme)
+                .scale_factor(AppGui::scale_factor)
+                .subscription(AppGui::subscription)
+                .run())
+            },
+        )
     }
 
     // startup behavior, should be lightweight calls
