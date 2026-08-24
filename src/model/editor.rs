@@ -18,7 +18,7 @@ pub const INITIAL_SCALE_FACTOR: f32 = 1.0;
 /// that should remain even when the gui is closed in the DAW
 pub struct AppEditor{
     pub params: Arc<AppParams>,
-    pub probe_rx: Output<Vec<f32>>,
+    pub probe_rx: Arc<Output<Vec<f32>>>,
     pub numerator_text: String,
     pub denominator_text: String,
     pub tempo_text: String,
@@ -28,7 +28,7 @@ pub struct AppEditor{
 }
 
 impl AppEditor{
-    pub fn new(params: Arc<AppParams>, probe_rx: Output<Vec<f32>>) -> Self{
+    pub fn new(params: Arc<AppParams>, probe_rx: Arc<Output<Vec<f32>>>) -> Self{
 
         //match 2 or 3 digits, followed optionally by a period and 1 or two digits from the start of the string
         let tempo_regex = Regex::new(r"^(\d{2,3})(\.\d{2}){0,1}").expect("Tempo regex not compiled"); 

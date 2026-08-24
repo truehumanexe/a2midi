@@ -3,6 +3,10 @@
 
 #![allow(unused)] //removed this before merge with main
 
+use std::panic::{self, AssertUnwindSafe};
+use std::fs::OpenOptions;
+use std::io::Write;
+
 use std::sync::{Arc, atomic::AtomicUsize, atomic::Ordering};
 use tracing::level_filters::LevelFilter;
 
@@ -37,7 +41,7 @@ pub struct App {
     notifier: PollSubNotifier,
 
     audio_write_block: Option<Producer<f32>>,
-    probe_data: Option<ProbeData>,
+    probe_data: ProbeData,
 
     
     
@@ -46,12 +50,19 @@ pub struct App {
 
 impl Default for App{
     fn default() -> Self {
+        let p = Arc::new(AppParams::default());
+        let exponent = match p.probe_exponent.range() {
+            IntRange::Linear {min, max} => max,
+            _ => 11,
+        } as u32;
+        let samples = 2_i32.pow(exponent) as usize;
+
         Self {
             params: Arc::new(AppParams::default()),
             editor_state: IcedEditorState::from_size(MIN_WINDOW_SIZE, INITIAL_SCALE_FACTOR),
             notifier: PollSubNotifier::new(),
             audio_write_block: None,
-            probe_data: None,
+            probe_data: ProbeData::new(samples),
         }
     }
 }
@@ -98,7 +109,7 @@ impl Plugin for App{
             self.editor_state.clone(),
             AppEditor::new(
                 self.params.clone(),
-                self.probe_data.as_ref().unwrap().take_rx().unwrap(), //if this panics the probe_data setup needs to be entirely rewritten.
+                self.probe_data.rx.clone(),
             ),
             self.notifier.clone(),
             IcedNiceSettings::new().with_resize_hint(RESIZE_HINT),
@@ -116,6 +127,7 @@ impl Plugin for App{
                 .run())
             },
         )
+        
     }
 
     // startup behavior, should be lightweight calls
@@ -128,12 +140,6 @@ impl Plugin for App{
     ) -> bool  {
 
         //Setup for scope analyzer
-
-        let probe_size = self.probe_samples();
-        let v = vec![0.0f32;probe_size];
-        let (mut buf_producer, mut buf_consumer) = triple_buffer::triple_buffer(&v);
-
-        self.probe_data = Some( ProbeData::new(probe_size));
 
         true
     }
@@ -169,10 +175,7 @@ impl Plugin for App{
         for channel_samples in buffer.iter_samples() {
 
             for sample in channel_samples {
-                match &mut self.probe_data{
-                    Some(p) => p.push(sample.float_value()),
-                    _ => return ProcessStatus::Error("probe_data not instanced"),
-                }
+                self.probe_data.push(sample.float_value())
             }
         }
 
@@ -192,6 +195,7 @@ impl ClapPlugin for App {
         // ClapFeature::Stereo,
         ClapFeature::Mono,
         ClapFeature::Utility,
+        ClapFeature::Analyzer,
     ];
 }
 

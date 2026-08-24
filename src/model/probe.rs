@@ -1,3 +1,4 @@
+use std::sync::{Arc, atomic::AtomicUsize, atomic::Ordering};
 use std::cell::Cell;
 use triple_buffer::{Input, Output, TripleBuffer, triple_buffer};
 
@@ -8,8 +9,9 @@ use triple_buffer::{Input, Output, TripleBuffer, triple_buffer};
 /// GUI components
 pub struct ProbeData{
     tx: Input<Vec<f32>>,
-    rx: Option<Output<Vec<f32>>>,
+    pub rx: Arc<Output<Vec<f32>>>,
     staging: Vec<f32>,
+    current_size: usize,
     counter: usize,
 }
 
@@ -25,8 +27,9 @@ impl ProbeData{
         let (tx, rx) = triple_buffer(vec![0.0f32;size].as_ref());
         Self{
             tx, 
-            rx: Some(rx),
+            rx: Arc::new(rx),
             staging: vec![0.0f32;size],
+            current_size: size,
             counter: 0
         }
     }
@@ -35,7 +38,7 @@ impl ProbeData{
         self.staging[self.counter] = val;
         self.counter += 1;
         
-        if self.counter >= self.staging.len(){
+        if self.counter >= self.current_size{
             let input = self.tx.input_buffer_mut();
             input.copy_from_slice(self.staging.as_slice());
             self.tx.publish();
@@ -44,7 +47,5 @@ impl ProbeData{
 
     }
 
-    pub fn take_rx(&mut self)  -> Option<Output<Vec<f32>>> {
-        self.rx.take() 
-    }
+    //add resize function to change current_size and clear out buffers
 }
