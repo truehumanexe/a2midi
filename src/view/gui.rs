@@ -13,28 +13,39 @@ use crate::view::messages::*;
 pub struct AppGui {
     persistent_state: PersistentState<AppEditor>,
     ctx: IcedNiceContext,
+    tempo: String,
+    time_signature: String,
 }
 
 impl AppGui{
+
     fn top_menu(&self) -> Row<'_, Message> {
-        let tempo = &self.persistent_state.tempo_text;
-        let num = &self.persistent_state.numerator_text;
-        let denom =  &self.persistent_state.denominator_text;
     row![
-        button("|||").on_press(Message::HamburgerMenu),
-        text_input("120", tempo).on_submit(Message::Time(TimeEdits::Tempo)),
-        button("Met").on_press(Message::Metronome),
-        text_input("4", num).on_submit(Message::Time(TimeEdits::TimeSignature)),
-        text_input("4",denom).on_submit(Message::Time(TimeEdits::TimeSignature)),
+        button("|||").on_press(Message::ButtonPress(ButtonId::Hamburger)),
+        //
+        text_input("120", &self.tempo)
+        .on_input(|text| Message::TextInput(TextEntryId::Tempo, text))
+        .on_submit(Message::TextSubmit(TextEntryId::Tempo)),
+        //
+        button("Met").on_press(Message::ButtonPress(ButtonId::Metronome)),
+        //
+        text_input("4/4", &self.time_signature)
+        .on_input(|text| Message::TextInput(TextEntryId::TimeSignature, text))
+        .on_submit(Message::TextSubmit(TextEntryId::TimeSignature)),
         ]
     }
 }
 
 impl AppGui {
     pub fn new(persistent_state: PersistentState<AppEditor>, ctx: IcedNiceContext) -> Self {
+        let tempo = persistent_state.tempo.clone(); 
+
+        let time_signature = persistent_state.time_signature.clone();
         Self {
             persistent_state,
             ctx,
+            tempo,
+            time_signature,
         }
     }
 
@@ -76,6 +87,35 @@ impl AppGui {
                 // Sync the current window size to the iced editor's state. This is
                 // needed to persist window size across editor opens.
                 self.ctx.sync_window_size();
+            }
+            Message::TextInput(id, value) => match id {
+                TextEntryId::TimeSignature => self.time_signature = value,
+                TextEntryId::Tempo => self.tempo = value,
+            }
+            Message::TextSubmit(id) => match id {
+                TextEntryId::TimeSignature => {
+
+                    let t = &self.time_signature;
+                    let e = self.persistent_state.as_mut();
+
+                    if(e.valid_time_signature(t)){
+                        e.set_time_signature(t);
+                    }else{
+                        self.time_signature = AppEditor::param_to_time_signature(&e.params);
+                    }
+
+                }
+                TextEntryId::Tempo => {
+                    let t = &self.tempo;
+                    let e = self.persistent_state.as_mut();
+
+                    if(e.valid_tempo(t)){
+                        e.set_tempo(t);
+                    }else{
+                        self.tempo = AppEditor::param_to_tempo(&e.params);
+                    }
+
+                }
             }
 
             _ => ()

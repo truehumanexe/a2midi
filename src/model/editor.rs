@@ -1,13 +1,17 @@
 
 
-use std::sync::{Arc, atomic::AtomicUsize, atomic::Ordering};
-use regex::Regex;
+use std::sync::{
+    Arc,
+    atomic::{AtomicUsize, AtomicBool, AtomicI32, Ordering}
+};
+
 use nice_plug::{editor::dpi::LogicalSize, prelude::*};
 
 use rtrb::{RingBuffer, PushError, PopError, Producer, Consumer};
 use triple_buffer::{TripleBuffer, Input, Output};
 
 use crate::model::params::*;
+use crate::model::regex::*;
 
 pub const MIN_WINDOW_SIZE: LogicalSize<f32> = LogicalSize::new(640.0, 360.0);
 pub const RESIZE_HINT: ResizeHint = ResizeHint::resizable().with_min_logical_size(MIN_WINDOW_SIZE);
@@ -19,35 +23,69 @@ pub const INITIAL_SCALE_FACTOR: f32 = 1.0;
 pub struct AppEditor{
     pub params: Arc<AppParams>,
     pub probe_rx: Arc<Output<Vec<f32>>>,
-    pub numerator_text: String,
-    pub denominator_text: String,
-    pub tempo_text: String,
-    tempo_regex: Regex,
-    time_sig_regex: Regex,
+    pub time_signature: String,
+    pub tempo: String,
+    pub re: AppRegex,
 
 }
 
 impl AppEditor{
+
+    pub fn param_to_time_signature(params: &Arc<AppParams>) -> String {
+        let numerator = params.time_sig_numerator.load(Ordering::Relaxed).to_string();
+        let denominator = params.time_sig_denominator.load(Ordering::Relaxed).to_string();
+        format!("{}/{}",numerator, denominator)
+    }
+
+    pub fn param_to_tempo(params: &Arc<AppParams>) -> String {
+        format!("{:2}",params.tempo.load(Ordering::Relaxed))
+    }
+
+    pub fn valid_time_signature(&self, text: &str) -> bool {
+        AppRegex::validate(&self.re.time_signature, text)
+    }
+
+    pub fn valid_tempo(&self, text: &str) -> bool {
+        AppRegex::validate(&self.re.tempo, text)
+    }
+
+    pub fn set_time_signature(&mut self, text: &str){
+        if self.valid_time_signature(text) {
+            let caps = self.re.time_signature.captures(text).expect("Invalid time signature");
+            
+            let num = caps[1].parse::<i32>().expect("Invalid time signature numerator");
+            let denom = caps[3].parse::<i32>().expect("Invalid time signature denominator");
+
+            self.params.time_sig_numerator.store(num, Ordering::Relaxed);
+            self.params.time_sig_denominator.store(denom, Ordering::Relaxed);
+        }
+    }
+
+    pub fn set_tempo(&mut self, text: &str){
+        if self.valid_tempo(text) {
+
+            let caps = self.re.time_signature.captures(text).expect("Invalid tempo");
+            let f = caps[0].parse::<f64>().expect("Time signature numerator not valid");
+
+            self.params.tempo.store(f, Ordering::Relaxed);
+            
+        }
+    }
+
+
+
     pub fn new(params: Arc<AppParams>, probe_rx: Arc<Output<Vec<f32>>>) -> Self{
 
-        //match 2 or 3 digits, followed optionally by a period and 1 or two digits from the start of the string
-        let tempo_regex = Regex::new(r"^(\d{2,3})(\.\d{2}){0,1}").expect("Tempo regex not compiled"); 
+        let tempo = AppEditor::param_to_tempo(&params);
 
-        //match 2 digits from the start of a string
-        let time_sig_regex = Regex::new(r"^\d{1,2}").expect("Time signature regex not compiled"); 
-
-        let tempo_text = format!("{:2}",params.tempo.load(Ordering::Relaxed));
-        let numerator_text = params.time_sig_numerator.load(Ordering::Relaxed).to_string();
-        let denominator_text = params.time_sig_denominator.load(Ordering::Relaxed).to_string();
-
+        let time_signature = AppEditor::param_to_time_signature(&params);
+    
         Self{
             params,
             probe_rx,
-            numerator_text,
-            denominator_text,
-            tempo_text,
-            tempo_regex,
-            time_sig_regex,
+            time_signature,
+            tempo,
+            re: AppRegex::new(),
         }
     }
 

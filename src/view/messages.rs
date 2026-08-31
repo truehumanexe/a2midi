@@ -1,5 +1,11 @@
+/// Gui Message logic is such that every gui element get's
+/// its own message, via a unique enum or nested enums
+/// These messages should include all relevant functionality
+/// All messages are grouped by overarching systems
+/// e.g. Tranport controls, Time Signature, piano editor, etc.
+
 #[derive(Debug, Clone, Copy)]
-pub enum TransportControls{
+pub enum TransportControl{
     Rewind,
     Play,
     Arm,
@@ -14,19 +20,28 @@ pub enum PianoRollMenu{
 }
 
 #[derive(Debug, Clone, Copy)]
-pub enum TimeEdits{
-    TimeSignature,
+pub enum TextEntryId{
     Tempo,
+    TimeSignature,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub enum Message{
-    Transport(TransportControls),
-    PianoRoll(PianoRollMenu),
-    Time(TimeEdits),
-    DawLock,
+#[derive(Debug, Clone)]
+pub enum ButtonId{
+    Rewind,
+    Play,
+    RecordArm,
+    Forward,
     Metronome,
-    HamburgerMenu,
+    Hamburger,
+    DawLock,
+}
+
+#[derive(Debug, Clone)]
+pub enum Message{
+    ButtonPress(ButtonId),
+    TextInput(TextEntryId, String),
+    TextSubmit(TextEntryId),
+    PianoRoll(PianoRollMenu),
     Poll,
     WindowResized,
 }
