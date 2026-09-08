@@ -6,35 +6,18 @@ use nice_plug_iced::{
     },
 };
 
-use crate::model::editor::AppEditor;
+use crate::view::editor::*;
 use crate::view::messages::*;
 
 
 pub struct AppGui {
     persistent_state: PersistentState<AppEditor>,
     ctx: IcedNiceContext,
-    tempo: String,
-    time_signature: String,
+    pub tempo: String,
+    pub time_signature: String,
 }
 
-impl AppGui{
 
-    fn top_menu(&self) -> Row<'_, Message> {
-    row![
-        button("|||").on_press(Message::ButtonPress(ButtonId::Hamburger)),
-        //
-        text_input("120", &self.tempo)
-        .on_input(|text| Message::TextInput(TextEntryId::Tempo, text))
-        .on_submit(Message::TextSubmit(TextEntryId::Tempo)),
-        //
-        button("Met").on_press(Message::ButtonPress(ButtonId::Metronome)),
-        //
-        text_input("4/4", &self.time_signature)
-        .on_input(|text| Message::TextInput(TextEntryId::TimeSignature, text))
-        .on_submit(Message::TextSubmit(TextEntryId::TimeSignature)),
-        ]
-    }
-}
 
 impl AppGui {
     pub fn new(persistent_state: PersistentState<AppEditor>, ctx: IcedNiceContext) -> Self {
@@ -64,6 +47,30 @@ impl AppGui {
     /// scale factor.
     pub fn scale_factor(&self) -> f32 {
         self.ctx.user_scale_factor()
+        // self.ctx.window_size().physical.height as f32 / MIN_WINDOW_SIZE.height
+    }
+
+    pub fn view(&self) -> Column<'_, Message> {
+        let params = &self.persistent_state.params;
+
+        column![
+            self.top_menu(),
+        ]
+        .padding(20)
+        .spacing(12.0)
+        .align_x(Center)
+    
+    }
+
+}
+
+impl AppGui{
+
+    fn force_aspect_ratio(&self){
+        let w = self.ctx.window_size().physical;
+
+
+
     }
 
     pub fn update(&mut self, message: Message) {
@@ -86,6 +93,7 @@ impl AppGui {
             Message::WindowResized => {
                 // Sync the current window size to the iced editor's state. This is
                 // needed to persist window size across editor opens.
+
                 self.ctx.sync_window_size();
             }
             Message::TextInput(id, value) => match id {
@@ -121,29 +129,5 @@ impl AppGui {
             _ => ()
         };
     }
-
-    pub fn view(&self) -> Column<'_, Message> {
-        let params = &self.persistent_state.params;
-
-        // let scale_opts = [
-        //     ScaleOption(0.5),
-        //     ScaleOption(0.75),
-        //     ScaleOption(1.0),
-        //     ScaleOption(1.25),
-        //     ScaleOption(1.5),
-        //     ScaleOption(1.75),
-        //     ScaleOption(2.0),
-        // ];
-
-        column![
-            self.top_menu(),
-        ]
-        .padding(20)
-        .spacing(12.0)
-        .align_x(Center)
-    
 }
-}
-
-    
 

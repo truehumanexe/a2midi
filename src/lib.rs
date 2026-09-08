@@ -24,10 +24,10 @@ use rtrb::{RingBuffer, PushError, PopError, Producer, Consumer};
 use triple_buffer::{TripleBuffer, Input, Output};
 
 mod model; 
-use model::{params::*, probe::*, editor::*};
+use model::{params::*, probe::*};
 
 mod view;
-use view::gui::*;
+use view::{gui::*, editor::*};
 
 
 
@@ -79,7 +79,7 @@ impl Plugin for App{
     // You can use `env!("CARGO_PKG_HOMEPAGE")` to reference the homepage field from the
     // `Cargo.toml` file here
     const URL: &'static str = "";
-    const EMAIL: &'static str = "truehuman.exe@gmail.com";
+    const EMAIL: &'static str = "";
 
     const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
