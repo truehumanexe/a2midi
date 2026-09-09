@@ -1,13 +1,15 @@
 use nice_plug_iced::{
-    IcedEditor, IcedEditorState, IcedNiceContext, IcedNiceSettings, PersistentState,
+    IcedEditor, IcedEditorState, IcedNiceContext, IcedNiceSettings, PersistentState, 
     iced::{
-        self, Center, PollSubNotifier, Subscription, Theme,
-        widget::{Column, Row, ProgressBar, button, column, pick_list, row, slider, text, text_input},
+        self, Center, PollSubNotifier, Subscription, Theme, wgpu::naga::MathFunction::Length, 
+        widget::{Column, Container, Row, button, column, row, text, text_input},
+        Padding,
     },
 };
 
 use crate::view::editor::*;
 use crate::view::messages::*;
+use crate::view::components::spec::*;
 
 
 pub struct AppGui {
@@ -50,15 +52,21 @@ impl AppGui {
         // self.ctx.window_size().physical.height as f32 / MIN_WINDOW_SIZE.height
     }
 
-    pub fn view(&self) -> Column<'_, Message> {
+    // pub fn view(&self) -> Column<'_, Message> {
+    pub fn view(&self) -> Container<'_, Message> {
         let params = &self.persistent_state.params;
 
-        column![
+
+
+        let body = column![
             self.top_menu(),
-        ]
-        .padding(20)
+        ].padding(BIG_PAD)
         .spacing(12.0)
-        .align_x(Center)
+        .align_x(Center);
+
+        Container::new(body)
+        .width(WIDTH)
+        .height(HEIGHT)
     
     }
 

@@ -27,7 +27,7 @@ mod model;
 use model::{params::*, probe::*};
 
 mod view;
-use view::{gui::*, editor::*};
+use view::{gui::*, editor::*, components::spec::*};
 
 
 

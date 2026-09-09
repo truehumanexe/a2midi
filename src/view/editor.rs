@@ -13,17 +13,7 @@ use triple_buffer::{TripleBuffer, Input, Output};
 use crate::model::params::*;
 use crate::model::regex::*;
 
-pub const MIN_HEIGHT:u32 = 500;
-pub const MIN_WIDTH:u32  = 430;
-pub const MAX_HEIGHT:u32 = 1000;
-pub const ASPECT_RATIO:f32 = MIN_WIDTH as f32 / MIN_HEIGHT as f32;
 
-pub const MIN_WINDOW_SIZE: LogicalSize<f32> = LogicalSize::new(MIN_WIDTH as f32, MIN_HEIGHT as f32);
-pub const RESIZE_HINT: ResizeHint = ResizeHint::resizable()
-.with_min_logical_size(MIN_WINDOW_SIZE)
-.with_aspect_ratio(MIN_WIDTH, MIN_HEIGHT);
-
-pub const INITIAL_SCALE_FACTOR: f32 = 1.0;
 
 
 /// AppEditor holds persistent editor and gui data 
