@@ -4,20 +4,6 @@
 /// All messages are grouped by overarching systems
 /// e.g. Tranport controls, Time Signature, piano editor, etc.
 
-#[derive(Debug, Clone, Copy)]
-pub enum TransportControl{
-    Rewind,
-    Play,
-    Arm,
-    Forward,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum PianoRollMenu{
-    Filters,
-    Algos,
-    Compile,
-}
 
 #[derive(Debug, Clone, Copy)]
 pub enum TextEntryId{
@@ -30,10 +16,16 @@ pub enum ButtonId{
     Rewind,
     Play,
     RecordArm,
+    Stop,
     Forward,
     Metronome,
     Hamburger,
     DawLock,
+    PianoMidiFocus,
+    PianoAudioFocus,
+    PianoCompile,
+    PianoImport,
+    PianoExport,
 }
 
 #[derive(Debug, Clone)]
@@ -41,7 +33,6 @@ pub enum Message{
     ButtonPress(ButtonId),
     TextInput(TextEntryId, String),
     TextSubmit(TextEntryId),
-    PianoRoll(PianoRollMenu),
     Poll,
     WindowResized,
 }

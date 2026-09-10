@@ -1,9 +1,9 @@
 use nice_plug_iced::{
     IcedEditor, IcedEditorState, IcedNiceContext, IcedNiceSettings, PersistentState, 
     iced::{
-        self, Center, PollSubNotifier, Subscription, Theme, wgpu::naga::MathFunction::Length, 
-        widget::{Column, Container, Row, button, column, row, text, text_input},
-        Padding,
+        self, Center, PollSubNotifier, Subscription, Theme, 
+        widget::{Column, Container, Row, button, column, row, text, text_input, responsive},
+        Padding, Length, alignment
     },
 };
 
@@ -57,16 +57,33 @@ impl AppGui {
         let params = &self.persistent_state.params;
 
 
+        let body = responsive(move |bound| {
 
-        let body = column![
-            self.top_menu(),
-        ].padding(BIG_PAD)
-        .spacing(12.0)
-        .align_x(Center);
+            let h = bound.height.max(BASE_HEIGHT as f32);
+            let w = h * ASPECT_RATIO;
+            let scale_factor = h/BASE_HEIGHT as f32;
 
+            column![
+                self.top_menu(scale_factor),
+                self.probe_frame(scale_factor),
+                self.piano_frame(scale_factor),
+                self.transport_frame(scale_factor),
+            ]
+            .padding(BIG_PAD * scale_factor)
+            .spacing(BIG_PAD * scale_factor)
+            .height(h)
+            .width(w)
+            .align_x(alignment::Alignment::Center)
+            .into()
+
+        });
+
+        // Exterior container that handles arbitrary window resizing from the DAW
         Container::new(body)
-        .width(WIDTH)
-        .height(HEIGHT)
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .align_x(alignment::Alignment::Center)
+        .align_y(alignment::Alignment::Center)
     
     }
 
