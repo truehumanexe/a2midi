@@ -1,5 +1,6 @@
+
 use nice_plug_iced::iced::{
-    widget::{row, Row, Canvas, container, text},
+    widget::{row, Row, Canvas, container, Container, text},
     {Length, Element, Theme, Renderer},
     core,alignment
 };
@@ -10,8 +11,8 @@ use crate::view::gui::AppGui;
 
 
 impl AppGui{
-    pub fn probe_frame(&self, scale_factor:f32) -> Row<'_, Message> {
-        row![
+    pub fn probe_frame(&self, scale_factor:f32) -> Container<'_, Message> {
+        let content = row![
             container(text("Spectrum\nplaceholder")) // placeholder
             .width(PROBE_DISPLAY * scale_factor)
             .height(PROBE_DISPLAY * scale_factor)
@@ -26,6 +27,8 @@ impl AppGui{
             
         ].spacing(BIG_PAD * scale_factor)
         .width(Length::Fill)
-        .align_y(alignment::Alignment::Center)
+        .align_y(alignment::Alignment::Center);
+
+        container(content)
     }
 }

@@ -1,5 +1,7 @@
+
+
 use nice_plug_iced::iced::{
-    widget::{column, Column, row, Row, button, Button, text, text_input, TextInput, },
+    widget::{container, Container, column, Column, row, Row, button, Button, text, text_input, TextInput, },
     {Length, Element, Theme, Renderer},
     core,alignment
 };
@@ -8,7 +10,8 @@ use nice_plug_iced::iced::{
 use crate::view::{
     components::{
         spec::{BIG_BUTTON, BIG_PAD, TEXT_BOX},
-        buttons::*
+        buttons::*,
+        colors::*,
     }, 
     messages::*
 };
@@ -16,20 +19,25 @@ use crate::view::gui::AppGui;
 
 
 impl AppGui{
-    pub fn top_menu(&self, scale_factor:f32) -> Row<'_, Message> {
-        row![
-            app_button(scale_factor, BIG_BUTTON, "H", ButtonId::Hamburger),
+    pub fn top_menu(&self, scale_factor:f32) -> Container<'_, Message> {
+        let content = row![
+            app_button(scale_factor, BIG_BUTTON, "H", ButtonId::Hamburger, ButtonStyle::Button1),
             //
-            app_button(scale_factor, BIG_BUTTON, "D", ButtonId::DawLock),
+            app_button(scale_factor, BIG_BUTTON, "D", ButtonId::DawLock, ButtonStyle::Button1),
             //
-            app_button(scale_factor, BIG_BUTTON, "M", ButtonId::Metronome),
+            app_button(scale_factor, BIG_BUTTON, "M", ButtonId::Metronome, ButtonStyle::Button1),
             //
-            text_io(scale_factor, "120", &self.tempo, TextEntryId::Tempo),
+            text_io(scale_factor, "120", &self.tempo, TextEntryId::Tempo).style(|theme, status| TextInputStyles::Default.get(status)),
             //
-            text_io(scale_factor, "4/4", &self.time_signature, TextEntryId::TimeSignature),
+            text_io(scale_factor, "4/4", &self.time_signature, TextEntryId::TimeSignature).style(|theme, status| TextInputStyles::Default.get(status)),
+            //
+            text(&self.note).width(TEXT_BOX.0*scale_factor),
         ]
         .spacing(BIG_PAD * scale_factor)
-        .align_y(alignment::Alignment::Center)
+        .align_y(alignment::Alignment::Center);
+
+        container(content)
+        .style(|theme| ContainerStyle::TopMenu.get())
     }
 }
 

@@ -7,9 +7,18 @@ use nice_plug_iced::iced::{
 
 use crate::view::messages::*;
 
-pub fn app_button<'a>(scale_factor:f32, size:f32, content: impl Into<Element<'a, Message, Theme, Renderer>>, button_id: ButtonId) -> Button<'a, Message, Theme, Renderer>{
+use crate::view::components::colors::*;
+
+pub fn app_button<'a>(
+    scale_factor:f32, 
+    size:f32, 
+    content: impl Into<Element<'a, Message, Theme, Renderer>>, 
+    button_id: ButtonId,
+    style: ButtonStyle
+) -> Button<'a, Message, Theme, Renderer>{
     button(content)
         .on_press(Message::ButtonPress(button_id))
         .width(size * scale_factor)
         .height(size * scale_factor)
+        .style(move |theme, status| style.get(status))
 }

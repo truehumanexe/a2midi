@@ -2,14 +2,14 @@ use nice_plug_iced::{
     IcedEditor, IcedEditorState, IcedNiceContext, IcedNiceSettings, PersistentState, 
     iced::{
         self, Center, PollSubNotifier, Subscription, Theme, 
-        widget::{Column, Container, Row, button, column, row, text, text_input, responsive},
+        widget::{Column, container, Container, Row, button, column, row, text, text_input, responsive},
         Padding, Length, alignment
     },
 };
 
 use crate::view::editor::*;
 use crate::view::messages::*;
-use crate::view::components::spec::*;
+use crate::view::components::{spec::*, colors::*};
 
 
 pub struct AppGui {
@@ -17,6 +17,7 @@ pub struct AppGui {
     ctx: IcedNiceContext,
     pub tempo: String,
     pub time_signature: String,
+    pub note: String,
 }
 
 
@@ -31,6 +32,7 @@ impl AppGui {
             ctx,
             tempo,
             time_signature,
+            note: String::from(""),
         }
     }
 
@@ -60,10 +62,20 @@ impl AppGui {
         let body = responsive(move |bound| {
 
             let h = bound.height.max(BASE_HEIGHT as f32);
-            let w = h * ASPECT_RATIO;
-            let scale_factor = h/BASE_HEIGHT as f32;
+            let w = bound.width.max(BASE_WIDTH as f32);
 
-            column![
+            let target_h = w/ASPECT_RATIO;
+            
+            // given a 1:1 box with aspect ratio 1
+            // this logic restrains a used for 1:2 box or 2:1 box to be constrained
+            // to 1:1, while allowing the UI to grow to 2:2 or 3:3
+            // This logic also applies to non square ratios which might be enforced by ASPECT_RATIO
+            let final_h = if target_h < h { target_h} else {h};
+            let final_w = final_h * ASPECT_RATIO;
+
+            let scale_factor = final_h/BASE_HEIGHT as f32;
+
+            let content = column![
                 self.top_menu(scale_factor),
                 self.probe_frame(scale_factor),
                 self.piano_frame(scale_factor),
@@ -71,9 +83,17 @@ impl AppGui {
             ]
             .padding(BIG_PAD * scale_factor)
             .spacing(BIG_PAD * scale_factor)
-            .height(h)
-            .width(w)
+            .height(final_h)
+            .width(final_w)
             .align_x(alignment::Alignment::Center)
+            ;
+
+            container(content)
+            .height(Length::Fill)
+            .width(Length::Fill)
+            .align_x(alignment::Alignment::Center)
+            .align_y(alignment::Alignment::Center)
+            .style(|theme| ContainerStyle::Background.get() )
             .into()
 
         });
