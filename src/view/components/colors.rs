@@ -42,10 +42,12 @@ impl ButtonStyle{
         match (&self, status) {
             (ButtonStyle::Button1,button::Status::Pressed) => button::Style{
                 background: Some(Background::Color(COLOR1.button_pressed)),
+                text_color: COLOR1.text_light,
                 ..Default::default()
             },
             (ButtonStyle::Button1,_) => button::Style{
                 background: Some(Background::Color(COLOR1.button)),
+                text_color: COLOR1.text_light,
                 ..Default::default()
             },
             (ButtonStyle::Button2,button::Status::Pressed) => button::Style{

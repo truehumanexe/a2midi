@@ -32,13 +32,12 @@ impl AppGui{
             //
             text_io(scale_factor, "4/4", &self.time_signature, TextEntryId::TimeSignature).style(|theme, status| TextInputStyles::Default.get(status)),
             //
-            text(&self.note).width(TEXT_BOX.0 * scale_factor),
+            // text(&self.note).width(TEXT_BOX.0 * scale_factor),
         ]
         .spacing(BIG_PAD * scale_factor)
         .height(Length::Fill)
-        .width(Length::Fill)
-        .padding(Padding::new(0.0).vertical(BIG_PAD * scale_factor))
-        // .align_y(alignment::Alignment::Center)
+        .width(Length::Shrink)
+        .align_y(alignment::Alignment::Center)
         ;
 
         
@@ -46,7 +45,6 @@ impl AppGui{
         container(content)
         .width(TOP_MENU_FRAME.0 * scale_factor)
         .height(TOP_MENU_FRAME.1 * scale_factor)
-        // .center_x(Length::Fill)
         .align_x(alignment::Horizontal::Center)
         .style(|theme| ContainerStyle::TopMenu.get())
         

@@ -26,9 +26,13 @@ impl AppGui{
             .align_x(alignment::Alignment::Center)
             
         ].spacing(BIG_PAD * scale_factor)
-        .width(Length::Fill)
+        .width(Length::Shrink)
+        .height(Length::Fill)
         .align_y(alignment::Alignment::Center);
 
         container(content)
+        .width(PROBE_FRAME.0 * scale_factor)
+        .height(PROBE_FRAME.1 * scale_factor)
+        .center_x(Length::Fill)
     }
 }

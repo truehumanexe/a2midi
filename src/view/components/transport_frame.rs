@@ -31,10 +31,17 @@ impl AppGui{
             app_button(scale_factor, BIG_BUTTON, ">", ButtonId::Forward, ButtonStyle::Button1),
         ]
         .spacing(BIG_PAD * scale_factor)
-        .align_y(alignment::Alignment::Center)
-        .height(TRANSPORT_FRAME.1 * scale_factor);
+        .width(Length::Shrink)
+        .height(Length::Fill)
+        .align_y(alignment::Vertical::Center)
+        ;
 
         container(content)
+        .width(TRANSPORT_FRAME.0 * scale_factor)
+        .height(TRANSPORT_FRAME.1 * scale_factor)
+        .align_x(alignment::Horizontal::Center)
+        
         .style(|theme| ContainerStyle::TopMenu.get())
+        
     }
 }
