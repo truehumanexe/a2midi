@@ -83,16 +83,16 @@ impl AppGui {
             ]
             .padding(BIG_PAD * scale_factor)
             .spacing(BIG_PAD * scale_factor)
-            .height(final_h)
-            .width(final_w)
+            .height(Length::Fill)
+            .width(Length::Fill)
             .align_x(alignment::Alignment::Center)
             ;
 
             container(content)
-            .height(Length::Fill)
-            .width(Length::Fill)
-            .align_x(alignment::Alignment::Center)
-            .align_y(alignment::Alignment::Center)
+            .height(final_h)
+            .width(final_w)
+            .center_x(Length::Fill)
+            .center_y(Length::Fill)
             .style(|theme| ContainerStyle::Background.get() )
             .into()
 

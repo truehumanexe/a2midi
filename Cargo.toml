@@ -12,7 +12,7 @@ crate-type = ["cdylib", "lib"]
 
 
 [dependencies]
-nice-plug = { version = "0.4.0", features = ["assert_process_allocs","standalone","tracing-subscriber"] }
+nice-plug = { version = "0.4.0", features = ["assert_process_allocs", "standalone", "tracing-subscriber"] }
 nice-plug-iced = { version = "0.4.0" }
 atomic_float = "1.1"
 triple_buffer = "9.0.0"

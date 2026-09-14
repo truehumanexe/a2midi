@@ -1,15 +1,15 @@
 
 
 use nice_plug_iced::iced::{
-    widget::{container, Container, column, Column, row, Row, button, Button, text, text_input, TextInput, },
-    {Length, Element, Theme, Renderer},
-    core,alignment
+    widget::{container, Container, column, Column, row, Row, button, Button, text, text_input, TextInput, center },
+    {Length, Element, Theme, Renderer, Padding},
+    core, alignment
 };
 
 
 use crate::view::{
     components::{
-        spec::{BIG_BUTTON, BIG_PAD, TEXT_BOX},
+        spec::{BIG_BUTTON, BIG_PAD, TEXT_BOX, TOP_MENU_FRAME},
         buttons::*,
         colors::*,
     }, 
@@ -20,6 +20,7 @@ use crate::view::gui::AppGui;
 
 impl AppGui{
     pub fn top_menu(&self, scale_factor:f32) -> Container<'_, Message> {
+
         let content = row![
             app_button(scale_factor, BIG_BUTTON, "H", ButtonId::Hamburger, ButtonStyle::Button1),
             //
@@ -31,13 +32,24 @@ impl AppGui{
             //
             text_io(scale_factor, "4/4", &self.time_signature, TextEntryId::TimeSignature).style(|theme, status| TextInputStyles::Default.get(status)),
             //
-            text(&self.note).width(TEXT_BOX.0*scale_factor),
+            text(&self.note).width(TEXT_BOX.0 * scale_factor),
         ]
         .spacing(BIG_PAD * scale_factor)
-        .align_y(alignment::Alignment::Center);
+        .height(Length::Fill)
+        .width(Length::Fill)
+        .padding(Padding::new(0.0).vertical(BIG_PAD * scale_factor))
+        // .align_y(alignment::Alignment::Center)
+        ;
+
+        
 
         container(content)
+        .width(TOP_MENU_FRAME.0 * scale_factor)
+        .height(TOP_MENU_FRAME.1 * scale_factor)
+        // .center_x(Length::Fill)
+        .align_x(alignment::Horizontal::Center)
         .style(|theme| ContainerStyle::TopMenu.get())
+        
     }
 }
 
