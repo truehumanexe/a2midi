@@ -21,12 +21,22 @@ impl AppRegex{
         }
     }
 
-    pub fn validate(re: &Regex, text: &str) -> bool{
+    pub fn validate_all(re: &Regex, text: &str) -> bool{
         let caps = re.captures(text);
+
+        caps.iter().for_each(|c| println!("capture: {:?}", c));
 
         match caps {
             // first value of a successful match always returns some, so skip it
             Some(c) => c.iter().skip(1).all(|m| m.is_some()),
+            None => false,
+        }
+    }
+
+    pub fn validate_n(re: &Regex, text: &str,n: usize) -> bool{
+        let caps = re.captures(text);
+        match caps {
+            Some(c) => c.get(n).is_some(),
             None => false,
         }
     }

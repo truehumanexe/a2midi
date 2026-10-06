@@ -40,19 +40,21 @@ impl AppEditor{
     }
 
     pub fn valid_time_signature(&self, text: &str) -> bool {
-        AppRegex::validate(&self.re.time_signature, text)
+        AppRegex::validate_all(&self.re.time_signature, text)
     }
 
     pub fn valid_tempo(&self, text: &str) -> bool {
-        AppRegex::validate(&self.re.tempo, text)
+        // only integer portion needs to be validated
+        // if decimal portion passes regex, it is automatically valid
+        AppRegex::validate_n(&self.re.tempo, text, 1)
     }
 
     pub fn set_time_signature(&mut self, text: &str){
         if self.valid_time_signature(text) {
             let caps = self.re.time_signature.captures(text).expect("Invalid time signature");
             
-            let num = caps[1].parse::<i32>().expect("Invalid time signature numerator");
-            let denom = caps[3].parse::<i32>().expect("Invalid time signature denominator");
+            let num = caps[1].parse::<i32>().expect("Invalid time signature numerator").min(99);
+            let denom = caps[3].parse::<i32>().expect("Invalid time signature denominator").min(99);
 
             self.params.time_sig_numerator.store(num, Ordering::Relaxed);
             self.params.time_sig_denominator.store(denom, Ordering::Relaxed);
@@ -62,8 +64,14 @@ impl AppEditor{
     pub fn set_tempo(&mut self, text: &str){
         if self.valid_tempo(text) {
 
-            let caps = self.re.time_signature.captures(text).expect("Invalid tempo");
-            let f = caps[0].parse::<f64>().expect("Time signature numerator not valid");
+            let caps = self.re.tempo.captures(text).expect("Invalid tempo");
+            let integer = caps[1].parse::<f64>().expect("Tempo not valid");
+            let decimal = caps.get(2) //option match to protect against none group
+            .map(|m| m.as_str().parse::<f64>().unwrap_or(0.0)) //match to string for parse functionality
+            .unwrap_or(0.0)
+            .min(0.99);
+
+            let f = integer + decimal;
 
             self.params.tempo.store(f, Ordering::Relaxed);
             

@@ -153,6 +153,7 @@ impl AppGui{
 
                     if(e.valid_time_signature(t)){
                         e.set_time_signature(t);
+                        self.time_signature = AppEditor::param_to_time_signature(&e.params);
                     }else{
                         self.time_signature = AppEditor::param_to_time_signature(&e.params);
                     }
@@ -164,6 +165,7 @@ impl AppGui{
 
                     if(e.valid_tempo(t)){
                         e.set_tempo(t);
+                        self.tempo = AppEditor::param_to_tempo(&e.params);
                     }else{
                         self.tempo = AppEditor::param_to_tempo(&e.params);
                     }
