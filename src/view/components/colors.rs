@@ -1,7 +1,7 @@
 use std::default::Default;
 use nice_plug_iced::iced::{
     Color, color, Border, border::radius, Background, Gradient, gradient::*,
-    widget::{button, text_input, container}
+    widget::{button, text_input, container, svg}
 };
 
 pub struct AppColor{
@@ -112,3 +112,21 @@ impl TextInputStyles{
     }
 }
 
+
+pub enum SvgStyles{
+    Light,
+    Dark,
+}
+
+impl SvgStyles{
+    pub fn get(&self, status: svg::Status) -> svg::Style{
+        match (&self, status) {
+            (SvgStyles::Light,_) => svg::Style{
+                color: Some(COLOR1.text_light),
+            },
+            (SvgStyles::Dark,_) => svg::Style{
+                color: Some(COLOR1.text_dark),
+            },
+        }
+    }
+}

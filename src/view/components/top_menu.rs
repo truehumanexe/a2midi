@@ -1,9 +1,9 @@
 
 
 use nice_plug_iced::iced::{
-    widget::{container, Container, column, Column, row, Row, button, Button, text, text_input, TextInput, center },
+    widget::{container, Container, column, Column, row, Row, button, Button, text, text_input, TextInput, center, svg},
     {Length, Element, Theme, Renderer, Padding},
-    core, alignment
+    core, alignment,
 };
 
 
@@ -21,8 +21,12 @@ use crate::view::gui::AppGui;
 impl AppGui{
     pub fn top_menu(&self, scale_factor:f32) -> Container<'_, Message> {
 
+        let menu_svg = svg("../../assets/menu.svg").width(Length::Fill).height(Length::Fill)
+        .style(move |theme, status| SvgStyles::Light.get(status));
+
         let content = row![
-            app_button(scale_factor, BIG_BUTTON, "H", ButtonId::Hamburger, ButtonStyle::Button1),
+    
+            app_button(scale_factor, BIG_BUTTON, menu_svg, ButtonId::Hamburger, ButtonStyle::Button1),
             //
             app_button(scale_factor, BIG_BUTTON, "D", ButtonId::DawLock, ButtonStyle::Button1),
             //
