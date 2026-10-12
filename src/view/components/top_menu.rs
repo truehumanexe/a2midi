@@ -12,6 +12,7 @@ use crate::view::{
         spec::{BIG_BUTTON, BIG_PAD, TEXT_BOX, TOP_MENU_FRAME},
         buttons::*,
         colors::*,
+        svg::*,
     }, 
     messages::*
 };
@@ -21,20 +22,20 @@ use crate::view::gui::AppGui;
 impl AppGui{
     pub fn top_menu(&self, scale_factor:f32) -> Container<'_, Message> {
 
-        let menu_svg = svg("../../assets/menu.svg").width(Length::Fill).height(Length::Fill)
-        .style(move |theme, status| SvgStyles::Light.get(status));
+        // let menu_svg = svg("../../assets/svg/menu.svg").width(Length::Fill).height(Length::Fill)
+        // .style(move |theme, status| SvgStyles::Light.get(status));
 
         let content = row![
     
-            app_button(scale_factor, BIG_BUTTON, menu_svg, ButtonId::Hamburger, ButtonStyle::Button1),
+            app_button(scale_factor, BIG_BUTTON, get_svg(AppSvg::Menu), ButtonId::Hamburger, ButtonStyle::Button1),
             //
-            app_button(scale_factor, BIG_BUTTON, "D", ButtonId::DawLock, ButtonStyle::Button1),
+            app_button(scale_factor, BIG_BUTTON, get_svg(AppSvg::LockKeyhole), ButtonId::DawLock, ButtonStyle::Button1),
             //
-            app_button(scale_factor, BIG_BUTTON, "M", ButtonId::Metronome, ButtonStyle::Button1),
+            app_button(scale_factor, BIG_BUTTON, get_svg(AppSvg::Metronome), ButtonId::Metronome, ButtonStyle::Button1),
             //
-            text_io(scale_factor, "120", &self.tempo, TextEntryId::Tempo).style(|theme, status| TextInputStyles::Default.get(status)),
+            text_io(scale_factor, "Tempo", &self.tempo, TextEntryId::Tempo).style(|theme, status| TextInputStyles::Default.get(status)),
             //
-            text_io(scale_factor, "4/4", &self.time_signature, TextEntryId::TimeSignature).style(|theme, status| TextInputStyles::Default.get(status)),
+            text_io(scale_factor, "Time Sig.", &self.time_signature, TextEntryId::TimeSignature).style(|theme, status| TextInputStyles::Default.get(status)),
             //
             // text(&self.note).width(TEXT_BOX.0 * scale_factor),
         ]
