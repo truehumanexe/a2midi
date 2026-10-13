@@ -23,7 +23,7 @@ pub const COLOR1:AppColor = AppColor{
     background: color!(0x646464), //dark grey
     top_menu: color!(0xcdcdcd), //light grey
     piano_menu: color!(0x9a9a9a),
-    button: color!(0x1e1e1e),
+    button: color!(0x575757),
     button_pressed: color!(0x141414),
     button_alt: color!(0xe3e3e3),
     button_alt_pressed: color!(0xd1d1d1),
