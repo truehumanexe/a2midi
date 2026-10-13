@@ -24,14 +24,14 @@ impl AppGui{
 
         // let menu_svg = svg("../../assets/svg/menu.svg").width(Length::Fill).height(Length::Fill)
         // .style(move |theme, status| SvgStyles::Light.get(status));
-
+        let c = SvgStyles::Light;
         let content = row![
     
-            app_button(scale_factor, BIG_BUTTON, get_svg(AppSvg::Menu), ButtonId::Hamburger, ButtonStyle::Button1),
+            app_button(scale_factor, BIG_BUTTON, get_svg(AppSvg::Menu, c.clone()), ButtonId::Hamburger, ButtonStyle::Button1),
             //
-            app_button(scale_factor, BIG_BUTTON, get_svg(AppSvg::LockKeyhole), ButtonId::DawLock, ButtonStyle::Button1),
+            app_button(scale_factor, BIG_BUTTON, get_svg(AppSvg::Lock, c.clone()), ButtonId::DawLock, ButtonStyle::Button1),
             //
-            app_button(scale_factor, BIG_BUTTON, get_svg(AppSvg::Metronome), ButtonId::Metronome, ButtonStyle::Button1),
+            app_button(scale_factor, BIG_BUTTON, get_svg(AppSvg::Metronome, c.clone()), ButtonId::Metronome, ButtonStyle::Button1),
             //
             text_io(scale_factor, "Tempo", &self.tempo, TextEntryId::Tempo).style(|theme, status| TextInputStyles::Default.get(status)),
             //

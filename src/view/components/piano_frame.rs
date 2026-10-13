@@ -1,14 +1,15 @@
 
 use nice_plug_iced::iced::{
-    widget::{column, Column, row, Row, Canvas, container, Container, text, button, Button},
+    widget::{column, Column, row, Row, Canvas, container, Container, text, button, Button, svg},
     {Length, Element, Theme, Renderer, Padding},
     core,alignment
 };
 
 
 use crate::view::{
-    components::{buttons::app_button, spec::*, colors::*,}, 
+    components::{buttons::app_button, spec::*, colors::*, svg::*,}, 
     messages::*,
+    
 };
 use crate::view::gui::AppGui;
 
@@ -38,12 +39,13 @@ impl AppGui{
 
 
 fn piano_menu<'a>(scale_factor:f32) -> Container<'a, Message>{
+    let c = &SvgStyles::Dark;
     let content = row![
-        app_button(scale_factor, SMALL_BUTTON, "M", ButtonId::PianoMidiFocus, ButtonStyle::Button2),
-        app_button(scale_factor, SMALL_BUTTON, "A", ButtonId::PianoAudioFocus, ButtonStyle::Button2),
-        app_button(scale_factor, SMALL_BUTTON, "C", ButtonId::PianoCompile, ButtonStyle::Button2),
-        app_button(scale_factor, SMALL_BUTTON, "I", ButtonId::PianoImport, ButtonStyle::Button2),
-        app_button(scale_factor, SMALL_BUTTON, "E", ButtonId::PianoExport, ButtonStyle::Button2),
+        app_button(scale_factor, SMALL_BUTTON,  get_svg(AppSvg::Switch, c.clone()), ButtonId::PianoMidiFocus, ButtonStyle::Button2),
+        app_button(scale_factor, SMALL_BUTTON,  get_svg(AppSvg::Algo, c.clone()), ButtonId::PianoAudioFocus, ButtonStyle::Button2),
+        app_button(scale_factor, SMALL_BUTTON,  get_svg(AppSvg::Analyze, c.clone() ), ButtonId::PianoCompile, ButtonStyle::Button2),
+        app_button(scale_factor, SMALL_BUTTON,  get_svg(AppSvg::Import, c.clone() ), ButtonId::PianoImport, ButtonStyle::Button2),
+        app_button(scale_factor, SMALL_BUTTON,  get_svg(AppSvg::Save, c.clone()), ButtonId::PianoExport, ButtonStyle::Button2),
     ]
     .spacing(BIG_PAD*scale_factor)
     .width(Length::Fill);
