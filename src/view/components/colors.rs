@@ -4,6 +4,7 @@ use nice_plug_iced::iced::{
     widget::{button, text_input, container, svg}
 };
 
+#[derive(Debug, Clone, Copy)]
 pub struct AppColor{
     pub background: Color,
     pub top_menu: Color,
@@ -22,16 +23,17 @@ pub const COLOR1:AppColor = AppColor{
     background: color!(0x646464), //dark grey
     top_menu: color!(0xcdcdcd), //light grey
     piano_menu: color!(0x9a9a9a),
-    button: color!(0x1e1e1e),
+    button: color!(0x575757),
     button_pressed: color!(0x141414),
     button_alt: color!(0xe3e3e3),
     button_alt_pressed: color!(0xd1d1d1),
     text_light: color!(0xcdcdcd),
-    text_dark: color!(0xffffff),
+    text_dark: color!(0x000000),
     text_panel: color!(0xbbbbbb),
     canvas: color!(0x303030),
 };
 
+#[derive(Debug, Clone, Copy)]
 pub enum ButtonStyle{
     Button1,
     Button2,
@@ -62,6 +64,7 @@ impl ButtonStyle{
     }
 }
 
+#[derive(Debug, Clone, Copy)]
 pub enum ContainerStyle{
     Background,
     TopMenu,
@@ -93,6 +96,7 @@ impl ContainerStyle{
     }
 }
 
+#[derive(Debug, Clone, Copy)]
 pub enum TextInputStyles{
     Default
 }
@@ -112,7 +116,7 @@ impl TextInputStyles{
     }
 }
 
-
+#[derive(Debug, Clone, Copy)]
 pub enum SvgStyles{
     Light,
     Dark,

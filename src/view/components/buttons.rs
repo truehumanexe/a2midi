@@ -20,5 +20,7 @@ pub fn app_button<'a>(
         .on_press(Message::ButtonPress(button_id))
         .width(size * scale_factor)
         .height(size * scale_factor)
+        .padding(size*0.1 * scale_factor)
         .style(move |theme, status| style.get(status))
+        
 }
