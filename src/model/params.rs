@@ -1,26 +1,47 @@
+use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
 use nice_plug::prelude::*;
 
-#[derive(Debug, Enum, PartialEq, Copy, Clone)]
-pub enum ChannelConfig{
-    Mono,
-    Stereo,
-}
-
 #[derive(Params)]
-pub struct A2MParams {
+pub struct AppParams {
 
-    #[id = "volume"]
-    pub volume: FloatParam,
+    #[persist = "tempo"]
+    pub tempo: util::AtomicF64,
 
-    #[id = "channel"]
-    pub channel: EnumParam<ChannelConfig>
+    #[persist = "time_sig_numerator"]
+    pub time_sig_numerator: AtomicI32,
+
+    #[persist = "time_sig_denominator"]
+    pub time_sig_denominator: AtomicI32,
+
+    #[persist = "armed"]
+    pub armed: AtomicBool,
+    
+    #[persist = "playing"]
+    pub playing: AtomicBool,
+
+    #[persist = "metronome"]
+    pub metronome_on: AtomicBool,
+
+    #[persist = "daw_lock"]
+    pub daw_lock: AtomicBool,
+
+    #[id = "probe_exp"]
+    pub probe_exponent: IntParam,
+
 }
 
-impl Default for A2MParams{
+impl Default for AppParams{
     fn default() -> Self {
         Self {
-            volume: FloatParam::new("Volume", 1.0, FloatRange::Linear{min: 0.0, max: 1.0}),
-            channel: EnumParam::new("Channel Config", ChannelConfig::Mono),
+            tempo: util::AtomicF64::new(120.0),
+            time_sig_numerator: AtomicI32::new(4),
+            time_sig_denominator: AtomicI32::new(4),
+            armed: AtomicBool::new(false),
+            playing: AtomicBool::new(false),
+            metronome_on: AtomicBool::new(false),
+            daw_lock: AtomicBool::new(false),
+            probe_exponent: IntParam::new( "Probe Exponent",  10, IntRange::Linear{min:9, max:11}),
+            
         }
     }
 }
