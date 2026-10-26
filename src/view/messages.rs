@@ -35,6 +35,4 @@ pub enum Message{
     TextSubmit(TextEntryId),
     Poll,
     WindowResized,
-    Tick,
-    None,
 }

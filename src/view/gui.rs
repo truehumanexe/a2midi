@@ -6,7 +6,6 @@ use nice_plug_iced::{
         self, Center, PollSubNotifier, Subscription, Theme, 
         widget::{Column, container, Container, Row, button, column, row, text, text_input, responsive},
         Padding, Length, alignment,
-        time
     },
 };
 
@@ -133,7 +132,7 @@ impl AppGui{
                 
                 if self.clock.ready() {
                     //gui stuff
-                    
+
                 }
             }
 
@@ -148,9 +147,6 @@ impl AppGui{
                 // needed to persist window size across editor opens.
 
                 self.ctx.sync_window_size();
-            }
-            Message::Tick =>{
-                //tick stuff
             }
             Message::TextInput(id, value) => match id {
                 TextEntryId::TimeSignature => self.time_signature = value,
