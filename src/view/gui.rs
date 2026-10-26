@@ -1,15 +1,19 @@
+use std::time::Duration;
+
 use nice_plug_iced::{
     IcedEditor, IcedEditorState, IcedNiceContext, IcedNiceSettings, PersistentState, 
     iced::{
         self, Center, PollSubNotifier, Subscription, Theme, 
         widget::{Column, container, Container, Row, button, column, row, text, text_input, responsive},
-        Padding, Length, alignment
+        Padding, Length, alignment,
+        time
     },
 };
 
 use crate::view::editor::*;
 use crate::view::messages::*;
 use crate::view::components::{spec::*, colors::*};
+use crate::model::clock::Clock;
 
 
 pub struct AppGui {
@@ -18,6 +22,7 @@ pub struct AppGui {
     pub tempo: String,
     pub time_signature: String,
     pub note: String,
+    pub clock: Clock,
 }
 
 
@@ -33,6 +38,7 @@ impl AppGui {
             tempo,
             time_signature,
             note: String::from(""),
+            clock: Clock::default(),
         }
     }
 
@@ -123,11 +129,13 @@ impl AppGui{
         let params = &self.persistent_state.params;
 
         match message {
-            // Message::Poll => {
-            //     self.peak_meter_db = nice_plug::util::gain_to_db(
-            //         self.persistent_state.peak_meter.load(Ordering::Relaxed),
-            //     );
-            // }
+            Message::Poll => {
+                
+                if self.clock.ready() {
+                    //gui stuff
+                    
+                }
+            }
 
             // Message::SetScaleFactor(scale_factor) => {
             //     self.ctx.set_user_scale_factor(scale_factor);
@@ -140,6 +148,9 @@ impl AppGui{
                 // needed to persist window size across editor opens.
 
                 self.ctx.sync_window_size();
+            }
+            Message::Tick =>{
+                //tick stuff
             }
             Message::TextInput(id, value) => match id {
                 TextEntryId::TimeSignature => self.time_signature = value,
