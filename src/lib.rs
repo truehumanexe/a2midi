@@ -13,35 +13,40 @@ use tracing::level_filters::LevelFilter;
 
 use nice_plug::{editor::dpi::LogicalSize, prelude::*};
 
-use nice_plug_iced::{
-    IcedEditor, IcedEditorState, IcedNiceContext, IcedNiceSettings, PersistentState, application, create_iced_editor, iced::{
-        self, Center, PollSubNotifier, Subscription, Theme, animation::Float, widget::{Column, ProgressBar, button, column, pick_list, row, slider, text},
-    },
+use nice_plug_egui::{
+    EguiEditor, EguiEditorState, EguiNiceSettings, NiceEguiApp, RepaintNotifier,
+    create_egui_editor, resizable_window::ResizableWindow, widgets,
 };
-
 
 use rtrb::{RingBuffer, PushError, PopError, Producer, Consumer};
 use triple_buffer::{TripleBuffer, Input, Output};
 
 mod model; 
-use model::{params::*, probe::*};
+use model::{params::*, clock::*};
 
 mod view;
-use view::{gui::*, editor::*, components::spec::*};
+use view::{
+    // gui::*, 
+    editor::*, 
+    // components::spec::*
+};
 
-
+const MIN_WINDOW_SIZE: LogicalSize<f32> = LogicalSize::new(500.0, 500.0);
+const RESIZE_HINT: ResizeHint = ResizeHint::resizable().with_min_logical_size(MIN_WINDOW_SIZE);
 
 
 
 pub struct App {
     params: Arc<AppParams>,
 
-    editor_state: Arc<IcedEditorState>,
+    // audio_write_block: Option<Producer<f32>>,
+    // probe_data: ProbeData,
 
-    notifier: PollSubNotifier,
-
-    audio_write_block: Option<Producer<f32>>,
-    probe_data: ProbeData,
+    repaint_notifier: RepaintNotifier,
+    initial_editor: Option<AppEditor>,
+    editor_state: Arc<EguiEditorState>,
+    value: Arc<AtomicF32>,
+    clock: Clock,
 
     
     
@@ -56,13 +61,18 @@ impl Default for App{
             _ => 11,
         } as u32;
         let samples = 2_i32.pow(exponent) as usize;
+        let v = Arc::new(AtomicF32::new(0.0));
 
         Self {
-            params: Arc::new(AppParams::default()),
-            editor_state: IcedEditorState::from_size(MIN_WINDOW_SIZE, INITIAL_SCALE_FACTOR),
-            notifier: PollSubNotifier::new(),
-            audio_write_block: None,
-            probe_data: ProbeData::new(samples),
+            params: p.clone(),
+            repaint_notifier: RepaintNotifier::new(),
+            initial_editor: Some(AppEditor::new(p.clone(), v.clone())),
+            editor_state: EguiEditorState::from_size(MIN_WINDOW_SIZE, 1.0),
+            value: v.clone(),
+            clock: Clock::new(16),
+            // notifier: PollSubNotifier::new(),
+            // audio_write_block: None,
+            // probe_data: ProbeData::new(samples),
         }
     }
 }
@@ -91,11 +101,13 @@ impl Plugin for App{
         },
     ];
 
+    const MIDI_INPUT: MidiConfig = MidiConfig::None;
+
     // const MIDI_OUTPUT: MidiConfig = MidiConfig::Basic;
     const SAMPLE_ACCURATE_AUTOMATION: bool = true;
-    
-    type Editor = IcedEditor;
+
     // type Editor = ();
+    type Editor = EguiEditor<AppEditor>;
     type SysExMessage = ();
     type BackgroundTask = ();
 
@@ -104,31 +116,14 @@ impl Plugin for App{
     }
 
     fn editor(&mut self, _async_executor: AsyncExecutor<Self>) -> Option<Self::Editor> {
-
-        create_iced_editor(
+        create_egui_editor(
             self.editor_state.clone(),
-            AppEditor::new(
-                self.params.clone(),
-                self.probe_data.rx.clone(),
-            ),
-            self.notifier.clone(),
-            IcedNiceSettings::new().with_resize_hint(RESIZE_HINT),
-            |editor_state, nice_ctx| {
-                Ok(application(
-                    editor_state,
-                    nice_ctx,
-                    AppGui::new,
-                    AppGui::update,
-                    AppGui::view,
-                )
-                .theme(AppGui::theme)
-                .scale_factor(AppGui::scale_factor)
-                .subscription(AppGui::subscription)
-                .run())
-            },
+            self.repaint_notifier.clone(),
+            EguiNiceSettings::new().with_resize_hint(RESIZE_HINT),
+            self.initial_editor.take().unwrap(),
         )
-        
     }
+
 
     // startup behavior, should be lightweight calls
     // define reset if needed; see docs for details
@@ -143,10 +138,6 @@ impl Plugin for App{
 
         true
     }
-
-    // This can be used for cleaning up special resources like socket connections whenever the
-    // plugin is deactivated. Most plugins won't need to do anything here.
-    // fn deactivate(&mut self) {}
 
     fn setup_logger() -> Option<bool> {
         Some(
@@ -175,19 +166,26 @@ impl Plugin for App{
         for channel_samples in buffer.iter_samples() {
 
             for sample in channel_samples {
-                self.probe_data.push(sample.float_value())
+                // self.probe_data.push(sample.float_value())
+                // println!("{}", *sample);
+                self.value.store(*sample,Ordering::Relaxed);
+                if self.clock.ready() && self.editor_state.is_open(){
+                    self.repaint_notifier.request_repaint();
+                }
             }
         }
 
         ProcessStatus::Normal
     }
 
+    fn deactivate(&mut self) {}
+
     
 
 }
 
 impl ClapPlugin for App {
-    const CLAP_ID: &'static str = "com.melodious-plugins.a2midi";
+    const CLAP_ID: &'static str = "com.melodious.a2midi";
     const CLAP_DESCRIPTION: Option<&'static str> = Some("An audio to MIDI conversion plugin");
     const CLAP_MANUAL_URL: Option<&'static str> = None;
     const CLAP_SUPPORT_URL: Option<&'static str> = None;
@@ -199,4 +197,11 @@ impl ClapPlugin for App {
     ];
 }
 
-nice_export_clap!(App);
+impl Vst3Plugin for App {
+    const VST3_CLASS_ID: [u8; 16] = *b"melodious-plugin";
+    const VST3_SUBCATEGORIES: &'static [Vst3SubCategory] =
+        &[Vst3SubCategory::Analyzer, Vst3SubCategory::Tools];
+}
+
+// nice_export_clap!(App);
+nice_export_vst3!(App);

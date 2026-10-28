@@ -1,0 +1,13 @@
+#view tags
+podman images
+
+# remove specific image
+podman rmi {image name}
+
+# remove all images
+podman system prune --all
+
+
+
+
+

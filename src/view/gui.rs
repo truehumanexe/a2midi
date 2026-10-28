@@ -3,7 +3,7 @@ use std::time::Duration;
 use nice_plug_iced::{
     IcedEditor, IcedEditorState, IcedNiceContext, IcedNiceSettings, PersistentState, 
     iced::{
-        self, Center, PollSubNotifier, Subscription, Theme, 
+        self, Center, PollSubNotifier, Subscription, Theme, Task,
         widget::{Column, container, Container, Row, button, column, row, text, text_input, responsive},
         Padding, Length, alignment,
     },
@@ -16,7 +16,7 @@ use crate::model::clock::Clock;
 
 
 pub struct AppGui {
-    persistent_state: PersistentState<AppEditor>,
+    pub persistent_state: PersistentState<AppEditor>,
     ctx: IcedNiceContext,
     pub tempo: String,
     pub time_signature: String,
@@ -130,10 +130,6 @@ impl AppGui{
         match message {
             Message::Poll => {
                 
-                if self.clock.ready() {
-                    //gui stuff
-
-                }
             }
 
             // Message::SetScaleFactor(scale_factor) => {

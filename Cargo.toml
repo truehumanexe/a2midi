@@ -6,6 +6,7 @@ authors=[
     "Charles Jackson"
 ]
 
+
 [lib]
 # standalone target
 crate-type = ["cdylib", "lib"]
@@ -13,11 +14,11 @@ crate-type = ["cdylib", "lib"]
 
 [dependencies]
 nice-plug = { version = "0.4.0", features = ["assert_process_allocs", "standalone", "tracing-subscriber"] }
-nice-plug-iced = { version = "0.4.0" }
 atomic_float = "1.1"
 triple_buffer = "9.0.0"
 rtrb = "0.4.0"
 tracing = "0.1.44"
 tracing-subscriber = "0.3.23"
 regex = "1.13.1"
-iced = {version = "0.14.0", features = ["canvas", "svg", "advanced"]}
+egui = { version = "0.37.0", features = ["default_fonts"] }
+nice-plug-egui = "0.6.0"
