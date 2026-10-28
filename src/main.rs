@@ -1,9 +1,9 @@
 
 use nice_plug::prelude::*;
-use a2midi::App;
+use a2midi::NicePlug;
 
 fn main() {
-    nice_export_standalone::<App>();
+    nice_export_standalone::<NicePlug>();
 }
 
 // fn main() {

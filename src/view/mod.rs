@@ -1,5 +1,4 @@
-// pub mod messages;
-// pub mod gui;
-pub mod editor;
-// pub mod components;
+pub mod messages;
+pub mod gui;
+pub mod components;
 
