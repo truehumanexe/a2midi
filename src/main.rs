@@ -5,8 +5,3 @@ use a2midi::NicePlug;
 fn main() {
     nice_export_standalone::<NicePlug>();
 }
-
-// fn main() {
-//     println!("Hello, world!");
-// }
-

@@ -19,31 +19,29 @@ use nice_plug_egui::{
 };
 
 use rtrb::{RingBuffer, PushError, PopError, Producer, Consumer};
-use triple_buffer::{TripleBuffer, Input, Output};
 
 mod model; 
 use model::{
     params::*,
-    probe::*,
-    clock::*,
-    editor::*,
     app::*,
+    utils::{ clock::*,}
 };
 
-const MIN_WINDOW_SIZE: LogicalSize<f32> = LogicalSize::new(500.0, 500.0);
-const RESIZE_HINT: ResizeHint = ResizeHint::resizable().with_min_logical_size(MIN_WINDOW_SIZE);
+mod view;
+use view::{
+    editor::*,
+};
 
 
 
 pub struct NicePlug {
     params: Arc<AppParams>,
     osc_data: Producer<f32>,
-
     repaint_notifier: RepaintNotifier,
     initial_editor: Option<AppEditor>,
     editor_state: Arc<EguiEditorState>,
     pub value: Arc<AtomicF32>,
-    pub clock: Clock,
+    pub gui_clock: Clock,
 
     
     
@@ -52,26 +50,25 @@ pub struct NicePlug {
 
 impl Default for NicePlug{
     fn default() -> Self {
-        let p = Arc::new(AppParams::default());
-        let exponent = match p.probe_exponent.range() {
-            IntRange::Linear {min, max} => max,
-            _ => 11,
-        } as u32;
-        let samples = 2_i32.pow(exponent) as usize;
+        let params = Arc::new(AppParams::default());
         let v = Arc::new(AtomicF32::new(0.0));
-        let a = Arc::new(App::default());
+        
+        
+        let min_width = App::DIM.min_width();
+        let min_heigth = App::DIM.min_heigth();
+        let min_window_size = App::DIM.min_window_size();
+
         let (producer, consumer) = RingBuffer::<f32>::new(1024);
         
 
         Self {
-            params: p.clone(),
+            params: params.clone(),
             osc_data: producer,
             repaint_notifier: RepaintNotifier::new(),
-            initial_editor: Some(AppEditor::new( v.clone(),consumer)),
-            editor_state: EguiEditorState::from_size(MIN_WINDOW_SIZE, 1.0),
+            initial_editor: Some(AppEditor::new(consumer)),
+            editor_state: EguiEditorState::from_size(min_window_size, 1.0),
             value: v.clone(),
-            clock: Clock::new(16),
-            // probe_data: ProbeData::new(samples),
+            gui_clock: Clock::new(16),
         }
     }
 }
@@ -118,7 +115,7 @@ impl Plugin for NicePlug{
         create_egui_editor(
             self.editor_state.clone(),
             self.repaint_notifier.clone(),
-            EguiNiceSettings::new().with_resize_hint(RESIZE_HINT),
+            EguiNiceSettings::new().with_resize_hint(App::DIM.resize_hint()),
             self.initial_editor.take().unwrap(),
         )
     }
@@ -176,7 +173,7 @@ impl Plugin for NicePlug{
         }
 
 
-        if self.clock.ready() {
+        if self.gui_clock.ready() {
                     self.repaint_notifier.request_repaint();
         }
 
@@ -208,5 +205,6 @@ impl Vst3Plugin for NicePlug {
         &[Vst3SubCategory::Analyzer, Vst3SubCategory::Tools];
 }
 
-// nice_export_clap!(App);
+
+// nice_export_clap!(NicePlug);
 nice_export_vst3!(NicePlug);

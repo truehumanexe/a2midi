@@ -6,3 +6,4 @@ pub mod transport_frame;
 pub mod buttons;
 pub mod colors;
 pub mod svg;
+pub mod oscilloscope;

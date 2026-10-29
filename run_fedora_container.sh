@@ -33,6 +33,7 @@ if [ -z "$VERSION" ]; then
     echo "Error: No Fedora version supplied."
     echo "Usage: ./container_run_fedora [--install|-i] <version>"
     echo "Example: ./container_run_fedora --install 40"
+    echo "Run podman images to see available versions via tags"
     exit 1
 fi 2>/dev/null || true # compatible check
 
