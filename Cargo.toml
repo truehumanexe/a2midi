@@ -22,3 +22,4 @@ egui = { version = "0.37.0", features = ["default_fonts"] }
 nice-plug-egui = "0.6.0"
 egui_plot = "0.38.0"
 lazy-regex = "3.6.2"
+realfft = "3.5.1"

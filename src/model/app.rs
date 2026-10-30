@@ -18,6 +18,7 @@ pub struct App;
 impl App{
     pub const DIM: Dimensions = Dimensions::new(430.0,500.0);
     pub const ANALYSIS_WINDOW:usize = 1024;
+    pub const SPECTRUM_WINDOW:usize = App::ANALYSIS_WINDOW/2 + 1;
     
 
     pub fn param_to_time_signature(params: &Arc<AppParams>) -> String {

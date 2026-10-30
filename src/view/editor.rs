@@ -39,7 +39,8 @@ impl OpenEditorState {
 /// AppEditor holds persistent editor and gui data 
 /// that should remain even when the gui is closed in the DAW
 pub struct AppEditor{
-    pub raw_samples: Consumer<f32>,
+    pub osc_tx: Consumer<f32>,
+    pub spectrum_tx: Consumer<f32>,
     pub sample_staging: Vec<f32>,
     pub osc_data: MirrorBuffer<f32> ,
     open_state: Option<OpenEditorState>,
@@ -47,10 +48,11 @@ pub struct AppEditor{
 
 
 impl AppEditor{
-    pub fn new(raw_samples: Consumer<f32>) -> Self{
+    pub fn new(osc_rx: Consumer<f32>, spectrum_rx: Consumer<f32>) -> Self{
     
         Self{
-            raw_samples,
+            osc_tx: osc_rx,
+            spectrum_tx: spectrum_rx,
             sample_staging: vec![0.0; App::ANALYSIS_WINDOW],
             osc_data: MirrorBuffer::new(App::ANALYSIS_WINDOW, 0.0),
             open_state: None,

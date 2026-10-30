@@ -24,7 +24,8 @@ mod model;
 use model::{
     params::*,
     app::*,
-    utils::{ clock::*,}
+    utils::{ clock::*,},
+    dsp::fft::Fft,
 };
 
 mod view;
@@ -36,12 +37,14 @@ use view::{
 
 pub struct NicePlug {
     params: Arc<AppParams>,
-    osc_data: Producer<f32>,
+    osc_tx: Producer<f32>,
+    spectrum_tx: Producer<f32>,
     repaint_notifier: RepaintNotifier,
     initial_editor: Option<AppEditor>,
     editor_state: Arc<EguiEditorState>,
     pub value: Arc<AtomicF32>,
     pub gui_clock: Clock,
+    pub fft: Fft<f32>,
 
     
     
@@ -58,17 +61,20 @@ impl Default for NicePlug{
         let min_heigth = App::DIM.min_height();
         let min_window_size = App::DIM.min_window_size();
 
-        let (producer, consumer) = RingBuffer::<f32>::new(1024);
+        let (osc_tx, osc_rx) = RingBuffer::<f32>::new(App::ANALYSIS_WINDOW);
+        let (spectrum_tx, spectrum_rx) = RingBuffer::<f32>::new(App::SPECTRUM_WINDOW);
         
 
         Self {
             params: params.clone(),
-            osc_data: producer,
+            osc_tx,
+            spectrum_tx,
             repaint_notifier: RepaintNotifier::new(),
-            initial_editor: Some(AppEditor::new(consumer)),
+            initial_editor: Some(AppEditor::new(osc_rx, spectrum_rx)),
             editor_state: EguiEditorState::from_size(min_window_size, 1.0),
             value: v.clone(),
             gui_clock: Clock::new(16),
+            fft: Fft::new(App::ANALYSIS_WINDOW, App::ANALYSIS_WINDOW/2)
         }
     }
 }
@@ -134,14 +140,27 @@ impl Plugin for NicePlug{
     }
 
     fn setup_logger() -> Option<bool> {
+    // 1. Set up a panic hook that logs panics via tracing so they go into debug.log
+        std::panic::set_hook(Box::new(|info| {
+            let location = info.location().map_or("unknown location".to_string(), |loc| {
+                format!("{}:{}:{}", loc.file(), loc.line(), loc.column())
+            });
+            let message = if let Some(s) = info.payload().downcast_ref::<&str>() {
+                s
+            } else if let Some(s) = info.payload().downcast_ref::<String>() {
+                s.as_str()
+            } else {
+                "Box<dyn Any>"
+            };
+
+            tracing::error!(target: "panic", "PANIC at {}: {}", location, message);
+        }));
+
+        // 2. Standard tracing setup
         Some(
             tracing::subscriber::set_global_default(
                 tracing_subscriber::FmtSubscriber::builder()
-                    .with_max_level(if cfg!(debug_assertions) {
-                        LevelFilter::DEBUG
-                    } else {
-                        LevelFilter::INFO
-                    })
+                    .with_max_level(LevelFilter::DEBUG) // Force DEBUG level to see everything
                     .with_writer(nice_plug::log::writer_from_env())
                     .with_ansi(false)
                     .finish(),
@@ -161,16 +180,17 @@ impl Plugin for NicePlug{
         for channel_samples in buffer.iter_samples() {
 
             for sample in channel_samples {
-                // self.probe_data.push(sample.float_value())
-                // println!("{}", *sample);
-                // self.value.store(*sample,Ordering::Relaxed);
-                if !self.osc_data.is_full(){
-                    self.osc_data.push(*sample);
+                if !self.osc_tx.is_full(){
+                    self.osc_tx.push(*sample);
                 }
+                self.fft.push(*sample);
                 
                 
             }
         }
+
+        self.fft.try_spectrum_creation();
+        self.spectrum_tx.push_entire_slice(self.fft.spectrum());
 
 
         if self.gui_clock.ready() {

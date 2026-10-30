@@ -24,9 +24,9 @@ impl AppEditor {
 
                 ui.horizontal(|ui| {
                     ui.spacing_mut().item_spacing.x = dim.pad.1 * scale;
-                    self.analysis_scope(ui, dim, scale);
+                    // self.analysis_scope(ui, dim, scale);
+                    self.spectrogram(ui, dim, scale);
                     self.oscilloscope(ui, dim, scale);
-
                 });
 
             });       
