@@ -55,7 +55,7 @@ impl Default for NicePlug{
         
         
         let min_width = App::DIM.min_width();
-        let min_heigth = App::DIM.min_heigth();
+        let min_heigth = App::DIM.min_height();
         let min_window_size = App::DIM.min_window_size();
 
         let (producer, consumer) = RingBuffer::<f32>::new(1024);

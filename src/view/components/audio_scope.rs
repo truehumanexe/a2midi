@@ -1,4 +1,4 @@
-use egui::{Margin, Vec2, Color32};
+use egui::{Margin, Vec2, Color32, Vec2b};
 
 use egui_plot::Line;
 use egui_plot::Plot;
@@ -18,6 +18,10 @@ impl AppEditor {
             .show(ui, |ui| {
 
                 let w = dim.display.0 * scale;
+                let h = dim.display.1 * scale;
+
+                ui.set_width(w);
+                ui.set_height(h);
                 
                 let (filled, empty) = self.raw_samples.pop_partial_slice(&mut self.sample_staging);
 
@@ -36,6 +40,14 @@ impl AppEditor {
                 let line = Line::new("Signal", s);
 
                 Plot::new("Oscilloscope")
+                    .allow_zoom(false)
+                    .allow_scroll(false)
+                    .allow_drag(false)
+                    .auto_bounds(Vec2b::FALSE)
+                    .default_x_bounds(0.0,1.0)
+                    .default_y_bounds(-1.0,1.0)
+                    .show_axes(false)
+                    .data_aspect(0.5)
                     .show(ui, |plot_ui| plot_ui.line(line));
                 });
     }

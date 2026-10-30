@@ -1,23 +1,10 @@
+use std::sync::{ Arc, atomic::{ Ordering }};
 
+use nice_plug::context::gui::GuiContext;
 
-use std::sync::{
-    Arc,
-    atomic::{
-        Ordering
-    }
-};
+use nice_plug_egui::{ NiceEguiApp, create_egui_editor, resizable_window::ResizableWindow,};
 
-use nice_plug::{
-    context::gui::GuiContext, 
-};
-
-use nice_plug_egui::{ 
-    NiceEguiApp,  
-    create_egui_editor, 
-    resizable_window::ResizableWindow,
-};
-
-use egui::{Frame, Color32, Margin, Vec2, accesskit::Color};
+use egui::{ Color32, Frame, Margin, Pos2, Separator, Vec2};
 
 use rtrb::{RingBuffer, PushError, PopError, Producer, Consumer};
 
@@ -31,8 +18,6 @@ use crate::model::utils::{
 };
 
 use crate::view::components::*;
-
-
 
 
 struct OpenEditorState {
@@ -99,7 +84,7 @@ impl NiceEguiApp for AppEditor {
         let scale = 1.0;
 
         let min_width = App::DIM.min_width() * scale;
-        let min_height = App::DIM.min_heigth() * scale;
+        let min_height = App::DIM.min_height() * scale;
         let min_vec = Vec2::new(min_width, min_height);
 
         let Some(state) = self.open_state.as_mut() else {
@@ -107,28 +92,33 @@ impl NiceEguiApp for AppEditor {
         };
 
         let setter = state.nice_gui_ctx.param_setter();
-        ui.set_min_size(min_vec);
-        // ResizableWindow::new("res-wind")
-        //     .min_size(min_vec)
-        //     .show(ui, |ui| {
+        
+        ResizableWindow::new("res-wind")
+            .min_size(min_vec)
+            .show(ui, |ui| {
+                ui.set_min_size(min_vec);
 
                 Frame::new() //Main central frame
-                .fill(Color32::BLACK)
+                .outer_margin(App::DIM.pad.1)
                 .show(ui, |ui |{
-                    ui.set_width(min_width - App::DIM.pad.1);
-                    ui.set_height(min_height - App::DIM.pad.1);
 
-                    // Top frame
-                    self.top_menu(ui, App::DIM, scale);
-                    // Audio Displays
-                        // self.oscilloscope(ui, min_width as f64);
+                    ui.vertical(|ui| {
 
-                    // Midi Display
+                        ui.spacing_mut().item_spacing.y = App::DIM.pad.1 * scale;
 
-                    // Transport
+                        self.top_menu(ui, App::DIM, scale);
+                        
+                        self.analysis_frame(ui, App::DIM, scale);
+
+                        self.midi_frame(ui, App::DIM, scale);
+
+                        self.transport_frame(ui, App::DIM, scale);
+
+                    });
+
                 });
                 
-            // });
+            });
     }
 
 }
