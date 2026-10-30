@@ -1,4 +1,4 @@
-use nice_plug_iced::iced::{widget::svg, Length};
+
 use std::{env::current_dir, fs, collections::HashMap};
 use crate::view::components::{colors::*};
 
@@ -41,30 +41,4 @@ pub enum AppSvg{
     Rewind,
     Stop,
     Switch
-}
-
-pub fn get_svg<'a>(name: AppSvg, color: SvgStyles) -> svg::Svg<'a> {
-    let bytes = match name {
-        AppSvg::Audio => AUDIO_LINES_BYTES,
-        AppSvg::Arm => CIRCLE_BYTES,
-        AppSvg::FastForward => FAST_FORWARD_BYTES,
-        AppSvg::Import => FOLDER_UP_BYTES,
-        AppSvg::Lock => LOCK_KEYHOLE_BYTES,
-        AppSvg::Menu => MENU_BYTES,
-        AppSvg::Metronome => METRONOME_BYTES,
-        AppSvg::MidiPort => MIDI_PORT_BYTES,
-        AppSvg::Play => PLAY_BYTES,
-        AppSvg::Refresh => REFRESH_CW_BYTES,
-        AppSvg::Rewind => REWIND_BYTES,
-        AppSvg::Stop => SQUARE_BYTES,
-        AppSvg::Save => SAVE_BYTES,
-        AppSvg::Switch => ARROW_LEFT_RIGHT_BYTES,
-        AppSvg::Algo => CODE_BYTES,
-        AppSvg::Analyze => BRAIN_BYTES,
-    };
-
-    svg(svg::Handle::from_memory(bytes))
-    .width(Length::Fill)
-    .height(Length::Fill)
-    .style(move |theme, status| color.get(status))
 }

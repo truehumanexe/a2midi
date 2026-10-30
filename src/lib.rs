@@ -19,71 +19,67 @@ use nice_plug_egui::{
 };
 
 use rtrb::{RingBuffer, PushError, PopError, Producer, Consumer};
-use triple_buffer::{TripleBuffer, Input, Output};
 
 mod model; 
-use model::{params::*, clock::*};
+use model::{
+    params::*,
+    app::*,
+    utils::{ clock::*,}
+};
 
 mod view;
 use view::{
-    // gui::*, 
-    editor::*, 
-    // components::spec::*
+    editor::*,
 };
 
-const MIN_WINDOW_SIZE: LogicalSize<f32> = LogicalSize::new(500.0, 500.0);
-const RESIZE_HINT: ResizeHint = ResizeHint::resizable().with_min_logical_size(MIN_WINDOW_SIZE);
 
 
-
-pub struct App {
+pub struct NicePlug {
     params: Arc<AppParams>,
-
-    // audio_write_block: Option<Producer<f32>>,
-    // probe_data: ProbeData,
-
+    osc_data: Producer<f32>,
     repaint_notifier: RepaintNotifier,
     initial_editor: Option<AppEditor>,
     editor_state: Arc<EguiEditorState>,
-    value: Arc<AtomicF32>,
-    clock: Clock,
+    pub value: Arc<AtomicF32>,
+    pub gui_clock: Clock,
 
     
     
 }
 
 
-impl Default for App{
+impl Default for NicePlug{
     fn default() -> Self {
-        let p = Arc::new(AppParams::default());
-        let exponent = match p.probe_exponent.range() {
-            IntRange::Linear {min, max} => max,
-            _ => 11,
-        } as u32;
-        let samples = 2_i32.pow(exponent) as usize;
+        let params = Arc::new(AppParams::default());
         let v = Arc::new(AtomicF32::new(0.0));
+        
+        
+        let min_width = App::DIM.min_width();
+        let min_heigth = App::DIM.min_heigth();
+        let min_window_size = App::DIM.min_window_size();
+
+        let (producer, consumer) = RingBuffer::<f32>::new(1024);
+        
 
         Self {
-            params: p.clone(),
+            params: params.clone(),
+            osc_data: producer,
             repaint_notifier: RepaintNotifier::new(),
-            initial_editor: Some(AppEditor::new(p.clone(), v.clone())),
-            editor_state: EguiEditorState::from_size(MIN_WINDOW_SIZE, 1.0),
+            initial_editor: Some(AppEditor::new(consumer)),
+            editor_state: EguiEditorState::from_size(min_window_size, 1.0),
             value: v.clone(),
-            clock: Clock::new(16),
-            // notifier: PollSubNotifier::new(),
-            // audio_write_block: None,
-            // probe_data: ProbeData::new(samples),
+            gui_clock: Clock::new(16),
         }
     }
 }
 
-impl App{
+impl NicePlug{
     fn probe_samples(&self) -> usize {
         2_i32.pow(self.params.probe_exponent.value() as u32) as usize
     }
 }
 
-impl Plugin for App{
+impl Plugin for NicePlug{
     const NAME: &'static str = "Audio2MIDI";
     const VENDOR: &'static str = "Melodious Plugins";
     // You can use `env!("CARGO_PKG_HOMEPAGE")` to reference the homepage field from the
@@ -119,7 +115,7 @@ impl Plugin for App{
         create_egui_editor(
             self.editor_state.clone(),
             self.repaint_notifier.clone(),
-            EguiNiceSettings::new().with_resize_hint(RESIZE_HINT),
+            EguiNiceSettings::new().with_resize_hint(App::DIM.resize_hint()),
             self.initial_editor.take().unwrap(),
         )
     }
@@ -133,8 +129,6 @@ impl Plugin for App{
         _buffer_config: &BufferConfig,
         _context: &mut impl ActivateContext<Self>,
     ) -> bool  {
-
-        //Setup for scope analyzer
 
         true
     }
@@ -163,16 +157,24 @@ impl Plugin for App{
         _aux: &mut AuxiliaryBuffers,
         _context: &mut impl ProcessContext<Self>,
     ) -> ProcessStatus {
+
         for channel_samples in buffer.iter_samples() {
 
             for sample in channel_samples {
                 // self.probe_data.push(sample.float_value())
                 // println!("{}", *sample);
-                self.value.store(*sample,Ordering::Relaxed);
-                if self.clock.ready() && self.editor_state.is_open(){
-                    self.repaint_notifier.request_repaint();
+                // self.value.store(*sample,Ordering::Relaxed);
+                if !self.osc_data.is_full(){
+                    self.osc_data.push(*sample);
                 }
+                
+                
             }
+        }
+
+
+        if self.gui_clock.ready() {
+                    self.repaint_notifier.request_repaint();
         }
 
         ProcessStatus::Normal
@@ -184,7 +186,7 @@ impl Plugin for App{
 
 }
 
-impl ClapPlugin for App {
+impl ClapPlugin for NicePlug {
     const CLAP_ID: &'static str = "com.melodious.a2midi";
     const CLAP_DESCRIPTION: Option<&'static str> = Some("An audio to MIDI conversion plugin");
     const CLAP_MANUAL_URL: Option<&'static str> = None;
@@ -197,11 +199,12 @@ impl ClapPlugin for App {
     ];
 }
 
-impl Vst3Plugin for App {
+impl Vst3Plugin for NicePlug {
     const VST3_CLASS_ID: [u8; 16] = *b"melodious-plugin";
     const VST3_SUBCATEGORIES: &'static [Vst3SubCategory] =
         &[Vst3SubCategory::Analyzer, Vst3SubCategory::Tools];
 }
 
-// nice_export_clap!(App);
-nice_export_vst3!(App);
+
+// nice_export_clap!(NicePlug);
+nice_export_vst3!(NicePlug);
