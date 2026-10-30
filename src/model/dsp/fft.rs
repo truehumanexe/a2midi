@@ -47,7 +47,7 @@ where
         self.counter += 1;
     }
 
-    pub fn try_spectrum_creation(&mut self) {
+    pub fn try_spectrum_creation(&mut self) -> bool {
         if self.counter >= self.hop_size {
             
             let signal_slice = self.signal.get_slice(0, self.length); 
@@ -64,6 +64,10 @@ where
             .map(|(i, c)| self.spectrum[i] = c.norm());
 
             self.counter = 0;
+            
+            true
+        } else {
+            false
         }
     }
 

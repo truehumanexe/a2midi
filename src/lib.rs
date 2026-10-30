@@ -189,10 +189,11 @@ impl Plugin for NicePlug{
             }
         }
 
-        self.fft.try_spectrum_creation();
-        self.spectrum_tx.push_entire_slice(self.fft.spectrum());
-
-
+        
+        if(self.fft.try_spectrum_creation()){
+            self.spectrum_tx.push_entire_slice(self.fft.spectrum());
+        }
+        
         if self.gui_clock.ready() {
                     self.repaint_notifier.request_repaint();
         }

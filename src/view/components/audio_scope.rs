@@ -23,7 +23,7 @@ impl AppEditor {
                 ui.set_width(w);
                 ui.set_height(h);
                 
-                let (filled, empty) = self.osc_tx.pop_partial_slice(&mut self.sample_staging);
+                let (filled, empty) = self.osc_rx.pop_partial_slice(&mut self.sample_staging);
 
                 self.osc_data.push_slice(filled);
 
@@ -64,7 +64,7 @@ impl AppEditor {
                 ui.set_width(w);
                 ui.set_height(h);
                 
-                let (filled, empty) = self.spectrum_tx.pop_partial_slice(&mut self.sample_staging);
+                let (filled, empty) = self.spectrum_rx.pop_partial_slice(&mut self.sample_staging);
 
                 let step = 1.0/w as f64;
 
