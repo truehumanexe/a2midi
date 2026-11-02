@@ -37,6 +37,10 @@ impl<T: Copy> MirrorBuffer<T> {
         self.data[index + self.index]
     }
 
+    pub fn latest(&self) -> T{
+        self.get(self.len() - 1)
+    }
+
     pub fn get_slice(&self, start: usize, end: usize) -> &[T] {
         assert!(start <= end && end <= self.size, "invalid range bounds");
         

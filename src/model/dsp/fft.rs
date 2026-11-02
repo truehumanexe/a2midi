@@ -4,19 +4,23 @@ use std::sync::Arc;
 
 use crate::model::utils::buffer::MirrorBuffer;
 
+
 pub struct Fft<T>
 where
     T: realfft::FftNum + Float,
 {
-    length: usize,
-    complex_spectrum: Vec<Complex<T>>,
-    spectrum: Vec<T>,
-    signal: MirrorBuffer<T>,
-    r2c: Arc<dyn RealToComplex<T>>,
-    counter: usize,
-    hop_size: usize,
-    // Pre-allocated scratch buffer to avoid heap allocation on the audio thread!
-    input_scratch: Vec<T>,
+    pub length: usize,
+    
+    pub complex_spectrum: Vec<Complex<T>>,
+    pub spectrum: Vec<T>,
+    
+    pub signal: MirrorBuffer<T>,
+    
+    pub r2c: Arc<dyn RealToComplex<T>>,
+    pub counter: usize,
+    pub hop_size: usize,
+
+    pub input_scratch: Vec<T>,
 }
 
 impl<T> Fft<T>
@@ -27,13 +31,13 @@ where
         let mut planner = RealFftPlanner::<T>::new();
         let r2c = planner.plan_fft_forward(length);
         let complex_spectrum = r2c.make_output_vec();
-        let l = complex_spectrum.len();
+        let spectrum_length = complex_spectrum.len();
         let input_scratch = r2c.make_input_vec(); // Pre-allocated once here
 
         Self {
             length,
             complex_spectrum,
-            spectrum: vec![T::zero();l],
+            spectrum: vec![T::zero();spectrum_length],
             signal: MirrorBuffer::new(length, T::zero()),
             r2c,
             counter: 0,
@@ -47,8 +51,11 @@ where
         self.counter += 1;
     }
 
-    pub fn try_spectrum_creation(&mut self) -> bool {
-        if self.counter >= self.hop_size {
+    pub fn ready(&self) -> bool{
+        self.counter >= self.hop_size
+    }
+
+    pub fn create_spectrum(&mut self){
             
             let signal_slice = self.signal.get_slice(0, self.length); 
 
@@ -61,17 +68,13 @@ where
             self.complex_spectrum
             .iter()
             .enumerate()
-            .map(|(i, c)| self.spectrum[i] = c.norm());
+            .for_each(|(i, c)| self.spectrum[i] = c.norm());
 
             self.counter = 0;
-            
-            true
-        } else {
-            false
-        }
     }
 
     pub fn spectrum(&self) -> &[T] {
         &self.spectrum
     }
+
 }

@@ -20,7 +20,7 @@ use nice_plug_egui::{
 
 use rtrb::{RingBuffer, PushError, PopError, Producer, Consumer};
 
-mod model; 
+pub mod model; 
 use model::{
     params::*,
     app::*,
@@ -190,12 +190,17 @@ impl Plugin for NicePlug{
         }
 
         
-        if(self.fft.try_spectrum_creation()){
-            self.spectrum_tx.push_entire_slice(self.fft.spectrum());
+        if(self.fft.ready()){
+            self.fft.create_spectrum();
         }
         
         if self.gui_clock.ready() {
-                    self.repaint_notifier.request_repaint();
+
+            // push spectrum even if it's not ready
+            // to either replot the old values or plot new values on the frames where 
+            // it is ready
+            self.spectrum_tx.push_entire_slice(self.fft.spectrum());
+            self.repaint_notifier.request_repaint();
         }
 
         ProcessStatus::Normal

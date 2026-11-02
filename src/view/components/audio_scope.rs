@@ -1,8 +1,6 @@
-use egui::{Margin, Vec2, Color32, Vec2b};
+use egui::{Margin, Vec2, Color32, Vec2b,};
 
-use egui_plot::Line;
-use egui_plot::Plot;
-use egui_plot::PlotPoints;
+use egui_plot::{Line, Plot, PlotPoints, Bar, BarChart};
 
 use crate::model::{
     app::App, 
@@ -88,4 +86,54 @@ impl AppEditor {
                 });
     }
 
+
+    pub fn spectrogram_bars(&mut self, ui: &mut egui::Ui, dim:Dimensions, scale:f32) {
+        egui::Frame::new()
+            .fill(Color32::BLACK)
+            .show(ui, |ui| {
+
+                let w = dim.display.0 * scale;
+                let h = dim.display.1 * scale;
+
+                ui.set_width(w);
+                ui.set_height(h);
+                
+                let (filled, empty) = self.spectrum_rx.pop_partial_slice(&mut self.sample_staging);
+
+                let step = 1.0/w as f64;
+
+                let bars: Vec<Bar> = filled
+                    .iter()
+                    .enumerate()
+                    .map(|(i, &magnitude)| {
+                        Bar::new(i as f64, magnitude as f64)
+                            .width(0.8) 
+                            .fill(egui::Color32::from_rgb(100, 149, 237)) 
+                    })
+                    .collect();
+
+                // let len = self.sample_staging.len() as f64;
+
+                // 2. Build the BarChart
+                let chart = BarChart::new("Magnitude",bars)
+                    .name("FFT Spectrum")
+                    .color(egui::Color32::LIGHT_BLUE);
+                    
+
+                Plot::new("Spectrogram")
+                    .allow_zoom(false)
+                    .allow_scroll(false)
+                    .allow_drag(false)
+                    .show_axes(false)
+                    .show_grid(false)
+                    // .default_x_bounds(0.0,len)
+                    // .default_y_bounds(0.0,len)
+                    .show(ui, |plot_ui| {
+                        plot_ui.bar_chart(chart);
+                    });
+                });
+    }
+
 }
+
+
